@@ -4,6 +4,7 @@ from collections import deque
 import random
 import logging
 import numpy as np
+from typing import List
 
 
 from transition import Transition
@@ -12,7 +13,10 @@ from model import Model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-class ReplayMemory(object):
+class ReplayMemory():
+    '''replay memory with fixed capacity
+
+    '''
     def __init__(self, capacity):
         '''_summary_
 
@@ -29,7 +33,7 @@ class ReplayMemory(object):
         '''
         self.memory.append(transition)
 
-    def sample(self, batch_size: int):
+    def sample(self, batch_size: int) -> List[Transition]:
         '''_summary_
 
         Args:
@@ -120,6 +124,6 @@ class Agent():
         np.random.shuffle(minibatch)
         minibatch = minibatch.squeeze(-1)
         # state batch
-        state_batch = [data.state for data in minibatch]
+        state_batch = [data.state.toTensor() for data in minibatch]
         
         raise NotImplementedError
