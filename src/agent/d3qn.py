@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -10,18 +12,18 @@ class VANet(nn.Module):
         super().__init__()
 
         self.common_layers = nn.Sequential(
-            nn.Linear(1000, 256), nn.ReLU(),
-            nn.Linear(256, 100), nn.ReLU(),
+            nn.Linear(4, 10), nn.ReLU(),
+            nn.Linear(10, 10), nn.ReLU(),
         )
 
         # A head
         self.A_output = nn.Sequential(
-            nn.Linear(256, 10)
+            nn.Linear(10, 2)
         )
 
         # V head
         self.V_output = nn.Sequential(
-            nn.Linear(256, 1),
+            nn.Linear(10, 1),
         )
 
     def forward(self, x):
@@ -41,7 +43,7 @@ class D3QN():
         self.target_net = VANet().to(self.device)
 
         self.optimizer = optim.Adam(
-            self.q_net.parameters(), lr=0.01)
+            self.q_net.parameters(), lr=0.001)
 
     def save(self, version):
         checkpoint_dir = "checkpoints"
@@ -70,7 +72,7 @@ class D3QN():
             self.optimizer.load_state_dict(torch.load(optimizer_dir))
 
     def softUpdateTarget(self):
-        tau = 0.95
+        tau = 1
         for t_param, param in zip(self.target_net.parameters(), self.q_net.parameters()):
             t_param.data = t_param.data * (1.0 - tau) + param.data * tau
 
@@ -79,8 +81,7 @@ class D3QN():
         NOTE: use encoder to encode state
             before calling predict
         """
-        raise NotImplementedError
-        if features.ndim < 4:
+        if features.ndim < 2:
             features = np.expand_dims(features, 0)
 
         features = torch.from_numpy(
@@ -89,12 +90,11 @@ class D3QN():
             q_values = self.q_net(features)
         return q_values.detach().cpu().numpy()
 
-    def trainStep(self, data_batch):
+    def trainStep(self, data_batch: List):
         """[summary]
         Returns:
             loss
         """
-        raise NotImplementedError
         states, rewards, actions, next_states, dones = data_batch
         states = states.float().to(self.device)
         rewards = rewards.view(-1, 1).float().to(self.device)
@@ -109,8 +109,7 @@ class D3QN():
             tq_values = self.target_net(
                 next_states).gather(1, max_actions.view(-1, 1))
 
-        q_targets = rewards + \
-            (1 - dones) * MDP_CONFIG.gamma * tq_values
+        q_targets = rewards + (1 - dones) * 0.98 * tq_values
         loss = F.mse_loss(q_values, q_targets)
 
         self.optimizer.zero_grad()

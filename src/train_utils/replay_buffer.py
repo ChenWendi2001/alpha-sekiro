@@ -1,13 +1,9 @@
-import itertools
 import pickle
-import random
-from collections import deque, namedtuple
-from itertools import product
+from collections import deque
 from typing import List
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, TensorDataset
 
 
 class ReplayBuffer():
@@ -42,13 +38,13 @@ class ReplayBuffer():
         """[summary]
         whether data is enough to start training
         """
-        return self.size() > 1000
+        return self.size() > 100
 
     def add(self, episode_data: List):
         self.buffer.extend(episode_data)
 
     def sample(self):
-        batch_size = 128
+        batch_size = 64
         indices = np.random.choice(
             len(self.buffer), batch_size)
         data_batch = map(
