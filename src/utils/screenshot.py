@@ -3,6 +3,7 @@ import win32con
 import win32gui
 
 from PIL import Image, ImageGrab
+import numpy as np
 
 def get_window_pos(name):
     handle = win32gui.FindWindow(0, name)
@@ -20,6 +21,7 @@ def fetch_image():
     win32gui.SetForegroundWindow(handle)
     grab_image = ImageGrab.grab(anchor)
     # grab_image.save("test.jpg")
+    grab_image = np.array(grab_image)
     # print(grab_image.size)
     return grab_image
 
