@@ -11,6 +11,9 @@ pip install pywin32==227
 ```
 
 ### 源代码文件说明
-#### src/control.py
+#### src/utils/control.py
 - 此文件负责模拟键盘与鼠标的输入
 - 可以按需求添加按键组合以实现连招或是退出游戏等操作
+
+#### src/utils/screenshot.py
+- 此文件可以获取指定窗口的截图
