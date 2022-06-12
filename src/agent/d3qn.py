@@ -12,18 +12,19 @@ class VANet(nn.Module):
         super().__init__()
 
         self.common_layers = nn.Sequential(
-            nn.Linear(4, 10), nn.ReLU(),
-            nn.Linear(10, 10), nn.ReLU(),
+            nn.Linear(4, 64), nn.ReLU(),
+            nn.Linear(64, 64), nn.ReLU(),
+            nn.Linear(64, 64), nn.ReLU(),
         )
 
         # A head
         self.A_output = nn.Sequential(
-            nn.Linear(10, 2)
+            nn.Linear(64, 2)
         )
 
         # V head
         self.V_output = nn.Sequential(
-            nn.Linear(10, 1),
+            nn.Linear(64, 1),
         )
 
     def forward(self, x):
@@ -72,7 +73,7 @@ class D3QN():
             self.optimizer.load_state_dict(torch.load(optimizer_dir))
 
     def softUpdateTarget(self):
-        tau = 1
+        tau = 0.1
         for t_param, param in zip(self.target_net.parameters(), self.q_net.parameters()):
             t_param.data = t_param.data * (1.0 - tau) + param.data * tau
 

@@ -12,7 +12,7 @@ class ReplayBuffer():
     """
 
     def __init__(self) -> None:
-        self.buffer = deque(maxlen=1000000)
+        self.buffer = deque(maxlen=20000)
 
     def size(self):
         return len(self.buffer)

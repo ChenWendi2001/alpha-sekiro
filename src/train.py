@@ -34,10 +34,10 @@ class Trainer():
         self.writer.add_scalar("score", mean_score, epoch)
 
         self.epsilon -= 0.01
-        self.epsilon = max(self.epsilon, 0.05)
+        self.epsilon = max(self.epsilon, 0.01)
 
     def train(self, epoch):
-        epochs = 1
+        epochs = 10
         total_num, mean_loss = 0, 0
         for _ in tqdm(range(epochs)):
             data_batch = self.replay_buffer.sample()
@@ -51,7 +51,7 @@ class Trainer():
         """[summary]
         pipeline: collect data, train, evaluate, update and repeat
         """
-        for i in range(1, 5000 + 1):
+        for i in range(1, 200 + 1):
             # >>>>> collect data
             self.collectData(i)
             print("Round {} finish, buffer size {}".format(
