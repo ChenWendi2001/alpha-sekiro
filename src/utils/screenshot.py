@@ -33,7 +33,7 @@ def fetch_image():
     grab_image = ImageGrab.grab(anchor)
     grab_image = np.array(grab_image)
     
-    grab_image = grab_image[-720:,:,::-1]
+    grab_image = grab_image[-721:-1,1:-1,::-1]
     # print(grab_image.size)
     return grab_image
 

@@ -11,7 +11,7 @@ from typing import Tuple
 def get_blood(image:np.array, height:Tuple, width: Tuple):
     image = fetch_image()
     
-    cv2.imwrite("test.jpg", image)
+    #cv2.imwrite("test.jpg", image)
     # image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     blood_bar = image[height[0]:height[1], width[0]:width[1]]
     # cv2.imwrite("test.jpg", blood_bar)
@@ -19,7 +19,7 @@ def get_blood(image:np.array, height:Tuple, width: Tuple):
 
     # debug code
     # print(blood_bar.shape)
-    # cv2.imwrite("test.jpg", blood_bar)
+    cv2.imwrite("test.jpg", blood_bar)
     # print(blood_bar.argmax(axis=-1))
     
     # FIXME: error when low blood 
