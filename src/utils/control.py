@@ -3,6 +3,8 @@ import win32con
 import time
 import ctypes
 
+from functools import partial
+
 # virtual key codes map
 # please refer to <https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes>
 KEY_MAP = {}
@@ -18,6 +20,13 @@ def press_key(num):
     win32api.keybd_event(num, MapVirtualKey(num, 0), 0, 0)
     time.sleep(0.05)
     win32api.keybd_event(num, MapVirtualKey(num, 0), win32con.KEYEVENTF_KEYUP, 0)
+
+
+attack = partial(press_key, KEY_MAP['J'])
+defense = partial(press_key, KEY_MAP['k'])
+lock = partial(press_key, KEY_MAP['L'])
+dodge = partial(press_key, KEY_MAP['N'])
+jump = partial(press_key, KEY_MAP['M'])
 
 if __name__ == "__main__":
     for i in range(10):

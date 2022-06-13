@@ -44,6 +44,9 @@ def get_endurance(image, height, width):
     endurance = np.median(endurance_bar.argmax(axis=-1))
     return endurance
 
+def get_state(image):
+    return image[STATE_HEIGHT[0]:STATE_HEIGHT[1], STATE_WIDTH[0]:STATE_WIDTH[1]]
+
 
 get_self_blood = partial(get_blood, height=SELF_BLOOD_HEIGHT, width=SELF_BLOOD_WIDTH)
 get_self_endurance = partial(get_endurance, height=SELF_ENDURANCE_HEIGHT, width=SELF_ENDURANCE_WIDTH)
