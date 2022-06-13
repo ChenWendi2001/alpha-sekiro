@@ -71,7 +71,6 @@ class Agent():
         self.update_target_every = config.update_target_every
 
 
-
         # Replay Buffer
         self.replay_buffer = ReplayMemory(capacity=config.capacity)
         # Policy Net

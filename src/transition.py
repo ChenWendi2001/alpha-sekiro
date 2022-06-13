@@ -11,8 +11,6 @@ class State():
             obs (_type_): _description_
         '''
         self.image = obs
-        raise NotImplementedError
-    
 
 class Transition():
     '''
