@@ -7,7 +7,7 @@ import numpy as np
 from typing import List
 
 
-from transition import Transition
+from transition import Transition, State
 from model import Model
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -63,6 +63,14 @@ class Agent():
         self.model_dir = config.model_dir
 
         self.batch_size = config.batch_size
+        self.discount = config.discount
+
+        self.lr = config.lr
+        self.lr_decay = config.lr_decay
+        self.lr_decay_every = config.lr_decay_every
+        self.update_target_every = config.update_target_every
+
+
 
         # Replay Buffer
         self.replay_buffer = ReplayMemory(capacity=config.capacity)
@@ -112,6 +120,27 @@ class Agent():
 
         return self.DQN_criterion(state_q_values, next_state_q_values)
     
+    def act(self, state: State):
+        '''act on input state 
+
+        Args:
+            state (State): _description_
+
+        Returns:
+            numpy: predicted prob on input state
+        '''
+        state = (
+            torch.from_numpy(state.image).float().to(device).unsqueeze(0),
+        )
+
+        self.policy_net.eval()
+        with torch.no_grad():
+            out = self.policy_net(state)
+            out = out.cpu().squeeze(0).numpy()
+        self.policy_net.train()
+        
+        return out
+
     def trian_Q_network(self, update=True):
         '''_summary_
 
@@ -124,6 +153,67 @@ class Agent():
         np.random.shuffle(minibatch)
         minibatch = minibatch.squeeze(-1)
         # state batch
-        state_batch = [data.state.toTensor() for data in minibatch]
+        state_batch = [data.state for data in minibatch]
         
-        raise NotImplementedError
+        state_batch = (
+            torch.tensor(
+                [state.image for state in state_batch]
+            ),
+        )
+
+        # action batch
+        action_batch = torch.tensor(
+            [data.action for data in minibatch], device=device
+        ).long()
+
+        # next state batch
+        next_state_batch = [data.next_state for data in minibatch]
+
+        # reward batch
+        reward_state_batch = torch.tensor(
+            [data.reward for data in minibatch], device=device
+        ).float()
+
+        reward_state_batch = reward_state_batch.repeat_interleave(
+            self.state_dim, 0
+        ).view(self.batch_size, self.state_w, self.state_h)
+
+        state_action_values = self.policy_net(state_batch).gather(1, action_batch)
+
+        not_done_mask = torch.tensor(
+            tuple(map(lambda s: s is not None, next_state_batch)), 
+            device=device,
+            dtype=torch.bool
+        )
+
+        not_done_next_states = torch.cat([
+            s for s in next_state_batch if s is not None
+        ])
+
+        next_state_values = torch.zeros(self.batch_size, device=device)
+        next_state_values[not_done_mask] = self.target_net(not_done_next_states).max(1)[0].detach()
+
+        expected_state_action_values = (next_state_values * self.discount) + reward_state_batch
+
+        loss = self.DQN_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+
+        self.optimizer.zero_grad()
+        loss.backward()
+
+        # gradient clip
+        for param in self.policy_net.parameters():
+            param.grad.data.clamp_(-1, 1)
+        
+        self.optimizer.step()
+
+        self.step += 1
+        if self.step % self.lr_decay_every == 0 and self.step != 0:
+            self.lr_scheduler.step()
+
+        if update and self.step % self.update_target_every == 0 and self.step != 0:
+            self.update_target_net()
+
+
+        return loss.item()
+
+
