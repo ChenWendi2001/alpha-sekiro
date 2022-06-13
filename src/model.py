@@ -1,14 +1,11 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torchvision.transforms as T
 
 
 
 class Model(nn.Module):
     def __init__(self, config):
-        '''_summary_
+        '''Init the Model
 
         Args:
             config (Config): config file parsed from command args
@@ -24,7 +21,7 @@ class Model(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size),
             nn.Flatten(),
-            nn.Linear(64 * (config.state_w // 2) * (config.state_h // 2), 512),
+            nn.Linear(64 * (config.obs_width // 4) * (config.obs_height // 4), 512),
             nn.Relu(),
             nn.Dropout(config.dropout),
             nn.Linear(512, 256), 
@@ -34,13 +31,13 @@ class Model(nn.Module):
             nn.Dropout(config.dropout)
         )
     
-    def forward(self,state_tensor):
+    def forward(self,state_tuple):
         '''forward through the model
 
         Args:
-            state_tensor (tensor): _description_
+            state_tuple ((tensor...)): _description_
 
         Returns:
             tensor: q values for input states
         '''
-        return self.layers(state_tensor)
+        return self.layers(state_tuple[0])

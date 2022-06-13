@@ -1,5 +1,7 @@
 
 import torch
+import torch.optim as optim
+import torch.functional as F
 from collections import deque
 import random
 import logging
@@ -18,7 +20,7 @@ class ReplayMemory():
 
     '''
     def __init__(self, capacity):
-        '''_summary_
+        '''init a replay buffer with fixed capacity
 
         Args:
             capacity (int): capacity of replay memory
@@ -26,7 +28,7 @@ class ReplayMemory():
         self.memory = deque([], maxlen=capacity)
 
     def store(self, transition: Transition):
-        '''_summary_
+        '''store a new Transition into replay buffer
 
         Args:
             transition (Transition): transition to be added
@@ -34,7 +36,7 @@ class ReplayMemory():
         self.memory.append(transition)
 
     def sample(self, batch_size: int) -> List[Transition]:
-        '''_summary_
+        '''sample a batch from replay buffer
 
         Args:
             batch_size (int): sample a batch
@@ -55,8 +57,8 @@ class Agent():
             config (Config): config file parsed from command args
         '''
         self.state_dim = config.obs_height * config.obs_width
-        self.state_w = config.obs_width
-        self.state_h = config.obs_height
+        self.obs_width = config.obs_width
+        self.obs_height = config.obs_height
 
         self.action_dim = config.action_dim
 
@@ -140,8 +142,9 @@ class Agent():
         
         return out
 
-    def trian_Q_network(self, update=True):
-        '''_summary_
+    def train_Q_network(self, update=True):
+        '''train Q network for one step
+            (Optional) Update the target net by policy net after given frequency
 
         Args:
             update (bool, optional): whether to update target model. Defaults to True.
@@ -157,7 +160,7 @@ class Agent():
         state_batch = (
             torch.tensor(
                 [state.image for state in state_batch]
-            ),
+            )
         )
 
         # action batch
@@ -175,7 +178,7 @@ class Agent():
 
         reward_state_batch = reward_state_batch.repeat_interleave(
             self.state_dim, 0
-        ).view(self.batch_size, self.state_w, self.state_h)
+        ).view(self.batch_size, self.obs_width, self.obs_height)
 
         state_action_values = self.policy_net(state_batch).gather(1, action_batch)
 
@@ -214,5 +217,3 @@ class Agent():
 
 
         return loss.item()
-
-

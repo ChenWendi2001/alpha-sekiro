@@ -8,9 +8,9 @@ class Config():
 
     def initialize(self, parser):
         cwd = os.path.dirname(__file__)
-        parser.add_argument("--obs_width", required=True) 
-        parser.add_argument("--obs_height", required=True)
-        parser.add_argument("--action_dim", required=True)
+        parser.add_argument("--obs_width", type=int, default=500) 
+        parser.add_argument("--obs_height", type=int, default=500)
+        parser.add_argument("--action_dim", type=int, default=4)
         parser.add_argument("--replay_capacity", type=int, default=2000)
         parser.add_argument("--lr", type=float, default=0.01)
         parser.add_argument("--weight_decay", type=float, default=1e-6)

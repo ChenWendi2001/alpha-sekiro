@@ -6,11 +6,12 @@ from tqdm import tqdm, trange
 import random
 import time
 import datetime
+import logging
 
 from agent import Agent
 from config import Config
 from utils import screenshot as Screenshot, control as Control
-from utils import reward as Reward
+import reward as Reward
 from transition import State, Transition
 
 
@@ -26,50 +27,85 @@ class Trainer():
 
 
     def run(self):
-        '''_summary_
+        '''the main training pipeline
         '''
         paused = True
-        paused = Control.pause_game(paused)
+        paused = Control.wait_command(paused)
        
         for episode in trange(self.config.episodes):
-            # first frame
-            obs = Screenshot.fetch_image()
-            cur_state = State(obs=obs)
-            done = False
+            # start a new game by pressing 'T' on game window
 
+            # get first frame
+            obs = Screenshot.fetch_image()
+            cur_state = State(obs)
+
+            # preset
+            done = False
             last_time = time.time()
             total_reward = 0
+
+            # avoid multi-judging during the animation of blood decreaing 
+            # 0: not in animation, 1: in animation
+            self_blood_animation_state = 0
+
             while True:
+                # calculate latency
+                logging.info('loop took {} seconds'.format(time.time()-last_time))
                 last_time = time.time()
+
+                # Russian roulette
                 if random.random() >= self.epsilon:
                     pred = self.agent.act(cur_state)
                     action_sort = np.squeeze(np.argsort(pred)[::-1])
                     action = action_sort[0]
-
                 else:
                     action = random.randint(0, config.action_dim)
 
                 Control.take_action(action)
+
+                # update epsilon
                 if self.epsilon > self.epsilon_end:
                     self.epsilon *= self.epsilon_decay
+                
+                # get next state
                 next_obs = Screenshot.fetch_image()
                 next_state = State(obs=next_obs)
-                reward, done = Reward.get_reward(cur_state, next_state)
+
+                # calculate reward and judge result
+                reward, done, self_blood_animation_state = Reward.get_reward(
+                    cur_state, 
+                    next_state,
+                    self_blood_animation_state
+                    )
+
                 self.agent.store_transition(Transition(
                     state=cur_state,
                     action=action,
-                    next_state=next_state,
+                    next_state=(next_state if not done else None),
                     reward=reward
                 ))
+
+                # traing one step
                 if len(self.agent.replay_buffer) > self.config.batch_size:
-                    self.agent.trian_Q_network()
-                paused = Control.pause_game(paused)
+                    self.agent.train_Q_network()
+
+                # check "T" key 
+                paused = Control.wait_command(paused)
+
+                total_reward += reward
                 if done == 1:
                     break
+            
             if episode % self.config.save_model_every:
                 torch.save(self.agent.policy_net.state_dict(), "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")))
 
 if __name__ == "__main__":
+    
     config = Config().parse()
+
+    # logging setting
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
     trainer = Trainer(config)
     trainer.run()

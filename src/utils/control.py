@@ -12,6 +12,10 @@ KEY_MAP = {}
 # add alphabet
 KEY_MAP.update({chr(c): 0x41+i for i, c in enumerate(range(ord('a'),ord('z')+1))})
 KEY_MAP.update({chr(c): 0x41+i for i, c in enumerate(range(ord('A'),ord('Z')+1))})
+KEY_MAP.update({"MID": 0x04}) # middle mouse button
+KEY_MAP.update({"LEFT": 0x01}) # left mouse button
+KEY_MAP.update({"SHIFT": 0x10})
+KEY_MAP.update({"SPACE": 0x20})
 print(KEY_MAP)
 
 def press_key(num):
@@ -21,21 +25,37 @@ def press_key(num):
     time.sleep(0.05)
     win32api.keybd_event(num, MapVirtualKey(num, 0), win32con.KEYEVENTF_KEYUP, 0)
 
+
+attack = partial(press_key, KEY_MAP['J'])
+defense = partial(press_key, KEY_MAP['k'])
+dodge = partial(press_key, KEY_MAP['SHIFT'])
+jump = partial(press_key, KEY_MAP['SPACE'])
+lock = partial(press_key, KEY_MAP['MID'])
+click = partial(press_key, KEY_MAP['LEF'])
+
 keyList = ["\b"]
 for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ 123456789,.'£$/\\":
     keyList.append(char)
 
-def key_check():
+def key_checks():
     keys = []
     for key in keyList:
         if win32api.GetAsyncKeyState(ord(key)):
             keys.append(key)
     return keys
 
+def check_key_down(key):
+    '''check whether a key is down
 
-def pause_game(paused):
-    keys = key_check()
-    if 'T' in keys:
+    Args:
+        key (str): only one character
+    '''
+    return True if  win32api.GetAsyncKeyState(ord(key)) else False
+
+
+
+def wait_command(paused):
+    if check_key_down('T'):
         if paused:
             paused = False
             print('start game')
@@ -47,7 +67,7 @@ def pause_game(paused):
     if paused:
         print('paused')
         while True:
-            keys = key_check()
+            keys = check_key_down('T')
             # pauses game and can get annoying.
             if 'T' in keys:
                 if paused:
@@ -67,14 +87,10 @@ def take_action(action):
         action (int): action index
 
     '''
-    raise NotImplementedError
+    [attack, defense, dodge, jump][action]()
 
 
-attack = partial(press_key, KEY_MAP['J'])
-defense = partial(press_key, KEY_MAP['k'])
-lock = partial(press_key, KEY_MAP['L'])
-dodge = partial(press_key, KEY_MAP['N'])
-jump = partial(press_key, KEY_MAP['M'])
+
 
 if __name__ == "__main__":
     for i in range(10):

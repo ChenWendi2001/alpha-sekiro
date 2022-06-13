@@ -6,9 +6,12 @@ from functools import partial
 from const import *
 from screenshot import fetch_image
 
-def get_blood(image, height, width):
+from typing import Tuple
+
+def get_blood(image:np.array, height:Tuple, width: Tuple):
     image = fetch_image()
-    # cv2.imwrite("test.jpg", image)
+    
+    cv2.imwrite("test.jpg", image)
     # image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     blood_bar = image[height[0]:height[1], width[0]:width[1]]
     # cv2.imwrite("test.jpg", blood_bar)
@@ -21,9 +24,10 @@ def get_blood(image, height, width):
     
     # FIXME: error when low blood 
     blood = np.median(blood_bar.argmax(axis=-1))
+    blood = int(blood / (width[1] - width[0]) * 100)
     return blood
 
-def get_endurance(image, height, width):
+def get_endurance(image: np.array, height: Tuple, width: Tuple):
     THRESHOLD = 171
 
     image = fetch_image()
@@ -42,9 +46,10 @@ def get_endurance(image, height, width):
     # print(endurance_bar.argmax(axis=-1))
      
     endurance = np.median(endurance_bar.argmax(axis=-1))
+    endurance = int(endurance / (width[1] - width[0]) * 100)
     return endurance
 
-def get_state(image):
+def get_state(image: np.array):
     return image[STATE_HEIGHT[0]:STATE_HEIGHT[1], STATE_WIDTH[0]:STATE_WIDTH[1]]
 
 
@@ -58,11 +63,11 @@ if __name__ == "__main__":
     last_time = time.time()
     while True:
         image = fetch_image()
-        print("self blood:", get_self_blood(image))
-        print("self endurance:", get_self_endurance(image))
+        print("self blood:", get_self_blood(image), end=' ')
+        print("self endurance:", get_self_endurance(image), end=' ')
 
-        print("boss blood:", get_boss_blood(image))
-        print("boss endurance:", get_boss_endurance(image))
+        print("boss blood:", get_boss_blood(image), end=' ')
+        print("boss endurance:", get_boss_endurance(image), end=' ')
 
-        print('loop took {} seconds'.format(time.time()-last_time))
+        print('loop took {} seconds'.format(time.time()-last_time), end='\r')
         last_time = time.time()
