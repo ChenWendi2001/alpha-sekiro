@@ -20,6 +20,7 @@ class Config():
         parser.add_argument("--update_target_every", type=int, default=300)
         parser.add_argument("--model_dir", type=str, default=os.path.join(cwd, "checkpoints"))
         parser.add_argument("--batch_size", type=int, default=64)
+        parser.add_argument("--dropout", type=float, default=1)
         self.initialize = True
         return parser
 
