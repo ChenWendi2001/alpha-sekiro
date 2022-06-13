@@ -2,6 +2,7 @@
 import torch
 import torch.optim as optim
 import torch.functional as F
+from torch import nn
 from collections import deque
 import random
 import logging
@@ -56,6 +57,8 @@ class Agent():
         Args:
             config (Config): config file parsed from command args
         '''
+
+        logging.info("Init Agent")
         self.state_dim = config.obs_height * config.obs_width
         self.obs_width = config.obs_width
         self.obs_height = config.obs_height
@@ -74,7 +77,7 @@ class Agent():
 
 
         # Replay Buffer
-        self.replay_buffer = ReplayMemory(capacity=config.capacity)
+        self.replay_buffer = ReplayMemory(capacity=config.replay_capacity)
         # Policy Net
         self.policy_net = Model(config).to(device)
         self.optimizer = optim.Adam(
@@ -83,7 +86,7 @@ class Agent():
         self.lr_scheduler = optim.lr_scheduler.ExponentialLR(
             self.optimizer, gamma=config.lr_decay
         )
-        self.DQN_criterion = F.mse_loss
+        self.DQN_criterion = nn.SmoothL1Loss()
         # Target Net
         self.target_net = Model(config).to(device)
 
@@ -118,6 +121,7 @@ class Agent():
         Return:
             float: DQN Loss
         '''
+        return self.DQN_criterion(state_q_values, next_state_q_values)
 
         return self.DQN_criterion(state_q_values, next_state_q_values)
     
@@ -153,20 +157,24 @@ class Agent():
         minibatch = self.replay_buffer.sample(self.batch_size)
 
         np.random.shuffle(minibatch)
-        minibatch = minibatch.squeeze(-1)
+        minibatch = minibatch
         # state batch
         state_batch = [data.state for data in minibatch]
         
         state_batch = (
-            torch.tensor(
-                [state.image for state in state_batch]
-            )
+            torch.stack(
+                [torch.from_numpy(state.image) for state in state_batch]
+            ).float().to(device),
         )
+        logging.debug("state batch shape: {}".format(state_batch[0].shape))
 
         # action batch
         action_batch = torch.tensor(
             [data.action for data in minibatch], device=device
         ).long()
+
+        logging.debug("action batch shape: {}".format(action_batch.shape))
+
 
         # next state batch
         next_state_batch = [data.next_state for data in minibatch]
@@ -176,11 +184,7 @@ class Agent():
             [data.reward for data in minibatch], device=device
         ).float()
 
-        reward_state_batch = reward_state_batch.repeat_interleave(
-            self.state_dim, 0
-        ).view(self.batch_size, self.obs_width, self.obs_height)
-
-        state_action_values = self.policy_net(state_batch).gather(1, action_batch)
+        state_action_values = self.policy_net(state_batch).gather(1, action_batch.unsqueeze(1))
 
         not_done_mask = torch.tensor(
             tuple(map(lambda s: s is not None, next_state_batch)), 
@@ -188,9 +192,11 @@ class Agent():
             dtype=torch.bool
         )
 
-        not_done_next_states = torch.cat([
-            s for s in next_state_batch if s is not None
-        ])
+        not_done_next_states = (
+            torch.stack(
+                [ torch.from_numpy(s.image) for s in next_state_batch if s is not None]
+            ).float().to(device),
+        )
 
         next_state_values = torch.zeros(self.batch_size, device=device)
         next_state_values[not_done_mask] = self.target_net(not_done_next_states).max(1)[0].detach()
@@ -201,6 +207,7 @@ class Agent():
 
         self.optimizer.zero_grad()
         loss.backward()
+        logging.info("loss: {}".format(loss.item()))
 
         # gradient clip
         for param in self.policy_net.parameters():

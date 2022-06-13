@@ -7,6 +7,7 @@ import random
 import time
 import datetime
 import logging
+import os
 
 from agent import Agent
 from config import Config
@@ -34,6 +35,7 @@ class Trainer():
        
         for episode in trange(self.config.episodes):
             # start a new game by pressing 'T' on game window
+            Control.lock()
 
             # get first frame
             obs = Screenshot.fetch_image()
@@ -59,8 +61,10 @@ class Trainer():
                     action_sort = np.squeeze(np.argsort(pred)[::-1])
                     action = action_sort[0]
                 else:
-                    action = random.randint(0, config.action_dim)
+                    action = random.randint(0, config.action_dim - 1)
 
+
+                logging.info("Action: {}".format(action))
                 Control.take_action(action)
 
                 # update epsilon
@@ -78,6 +82,11 @@ class Trainer():
                     self_blood_animation_state
                     )
 
+                if done:
+                    logging.info("player died!")
+                else:
+                    logging.info("reward: {}".format(reward))
+
                 self.agent.store_transition(Transition(
                     state=cur_state,
                     action=action,
@@ -94,10 +103,12 @@ class Trainer():
 
                 total_reward += reward
                 if done == 1:
+                    time.sleep(1)
+                    Control.click()
                     break
             
             if episode % self.config.save_model_every:
-                torch.save(self.agent.policy_net.state_dict(), "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")))
+                torch.save(self.agent.policy_net.state_dict(), os.path.join(config.model_dir, "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))))
 
 if __name__ == "__main__":
     

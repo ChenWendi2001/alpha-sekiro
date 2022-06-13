@@ -1,5 +1,6 @@
 from utils.info import *
-from typing import int, Optional
+from typing import Optional
+from torchvision import transforms as T
 
 class State():
     '''
@@ -11,8 +12,9 @@ class State():
         Args:
             obs (numpy array): 
         '''
-        self.image = obs
-        self.self_blood = get_blood(obs)
+        
+        self.image = np.transpose(get_state_image(obs), axes=(2, 0, 1))
+        self.self_blood = get_self_blood(obs)
         self.boss_blood = get_boss_blood(obs)
         self.self_endurance = get_self_endurance(obs)
         self.boss_endurance = get_boss_endurance(obs)
@@ -22,7 +24,7 @@ class Transition():
     '''
         the minimal element in replay buffer
     '''
-    def __init__(self, state: State, action: int, next_state: State, reward) -> None:
+    def __init__(self, state: State, action: int, next_state: Optional[State], reward) -> None:
         '''
 
         Args:

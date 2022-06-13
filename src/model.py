@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+import logging
 
 
 class Model(nn.Module):
@@ -12,17 +12,20 @@ class Model(nn.Module):
 
         '''
         super(Model, self).__init__()
+        logging.info("Initing Model")
         kernel_size = (5, 5)
-        self.layers = nn.Sequential(
+        self.cnn_layers = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size, padding=(kernel_size[0] // 2, kernel_size[1] // 2)),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size, padding=(kernel_size[0] // 2, kernel_size[1] // 2)),
+            nn.MaxPool2d((2, 2), stride=(2, 2)),
             nn.Conv2d(32, 64, kernel_size, padding=(kernel_size[0] // 2, kernel_size[0] // 2)),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size),
-            nn.Flatten(),
+            nn.MaxPool2d((2, 2), stride=(2, 2)),
+        )
+        self.dense_layers = nn.Sequential(
+            nn.Flatten(start_dim=1),
             nn.Linear(64 * (config.obs_width // 4) * (config.obs_height // 4), 512),
-            nn.Relu(),
+            nn.ReLU(),
             nn.Dropout(config.dropout),
             nn.Linear(512, 256), 
             nn.ReLU(),
@@ -40,4 +43,8 @@ class Model(nn.Module):
         Returns:
             tensor: q values for input states
         '''
-        return self.layers(state_tuple[0])
+        x = self.cnn_layers(state_tuple[0])
+        
+        out = self.dense_layers(x)
+        logging.debug(out.shape)
+        return out

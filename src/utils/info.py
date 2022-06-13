@@ -3,8 +3,8 @@ import cv2
 import time
 from functools import partial
 
-from const import *
-from screenshot import fetch_image
+from .const import *
+from .screenshot import fetch_image
 
 from typing import Tuple
 
@@ -19,7 +19,7 @@ def get_blood(image:np.array, height:Tuple, width: Tuple):
 
     # debug code
     # print(blood_bar.shape)
-    cv2.imwrite("test.jpg", blood_bar)
+    # cv2.imwrite("test.jpg", blood_bar)
     # print(blood_bar.argmax(axis=-1))
     
     # FIXME: error when low blood 
@@ -49,8 +49,9 @@ def get_endurance(image: np.array, height: Tuple, width: Tuple):
     endurance = int(endurance / (width[1] - width[0]) * 100)
     return endurance
 
-def get_state(image: np.array):
-    return image[STATE_HEIGHT[0]:STATE_HEIGHT[1], STATE_WIDTH[0]:STATE_WIDTH[1]]
+def get_state_image(image: np.array):
+    return cv2.resize(image[STATE_HEIGHT[0]:STATE_HEIGHT[1], STATE_WIDTH[0]:STATE_WIDTH[1]], \
+                dsize=(224,224), interpolation=cv2.INTER_CUBIC)
 
 
 get_self_blood = partial(get_blood, height=SELF_BLOOD_HEIGHT, width=SELF_BLOOD_WIDTH)

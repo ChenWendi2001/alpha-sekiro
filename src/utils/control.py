@@ -2,6 +2,7 @@ import win32api
 import win32con
 import time
 import ctypes
+import logging
 
 from functools import partial
 
@@ -31,7 +32,7 @@ defense = partial(press_key, KEY_MAP['k'])
 dodge = partial(press_key, KEY_MAP['SHIFT'])
 jump = partial(press_key, KEY_MAP['SPACE'])
 lock = partial(press_key, KEY_MAP['MID'])
-click = partial(press_key, KEY_MAP['LEF'])
+click = partial(press_key, KEY_MAP['LEFT'])
 
 keyList = ["\b"]
 for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ 123456789,.'£$/\\":
@@ -50,29 +51,32 @@ def check_key_down(key):
     Args:
         key (str): only one character
     '''
-    return True if  win32api.GetAsyncKeyState(ord(key)) else False
+    if win32api.GetAsyncKeyState(ord(key)):
+        return True
+    else:
+        return False
 
 
 
 def wait_command(paused):
-    if check_key_down('T'):
+    if win32api.GetAsyncKeyState(ord('T')):
         if paused:
             paused = False
-            print('start game')
+            logging.info('start game')
             time.sleep(1)
         else:
             paused = True
-            print('pause game')
+            logging.info('pause game')
             time.sleep(1)
     if paused:
-        print('paused')
+        logging.info('paused press "T" in game to start')
         while True:
-            keys = check_key_down('T')
+           
             # pauses game and can get annoying.
-            if 'T' in keys:
+            if win32api.GetAsyncKeyState(ord('T')):
                 if paused:
                     paused = False
-                    print('start game')
+                    logging.info('start game')
                     time.sleep(1)
                     break
                 else:
