@@ -10,17 +10,13 @@ class State():
         Args:
             obs (_type_): _description_
         '''
-        raise NotImplementedError
-    
-    def toTensor(self):
-        raise NotImplementedError
-
+        self.image = obs
 
 class Transition():
     '''
         the element in replay buffer
     '''
-    def __init__(self, state: State, action, next_state: State, reward, done) -> None:
+    def __init__(self, state: State, action, next_state: State, reward) -> None:
         '''_summary_
 
         Args:
@@ -28,6 +24,5 @@ class Transition():
             action (_type_): _description_
             next_state (State): _description_
             reward (_type_): _description_
-            done (function): _description_
         '''
         raise NotImplementedError

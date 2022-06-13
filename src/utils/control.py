@@ -21,6 +21,54 @@ def press_key(num):
     time.sleep(0.05)
     win32api.keybd_event(num, MapVirtualKey(num, 0), win32con.KEYEVENTF_KEYUP, 0)
 
+keyList = ["\b"]
+for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ 123456789,.'£$/\\":
+    keyList.append(char)
+
+def key_check():
+    keys = []
+    for key in keyList:
+        if win32api.GetAsyncKeyState(ord(key)):
+            keys.append(key)
+    return keys
+
+
+def pause_game(paused):
+    keys = key_check()
+    if 'T' in keys:
+        if paused:
+            paused = False
+            print('start game')
+            time.sleep(1)
+        else:
+            paused = True
+            print('pause game')
+            time.sleep(1)
+    if paused:
+        print('paused')
+        while True:
+            keys = key_check()
+            # pauses game and can get annoying.
+            if 'T' in keys:
+                if paused:
+                    paused = False
+                    print('start game')
+                    time.sleep(1)
+                    break
+                else:
+                    paused = True
+                    time.sleep(1)
+    return paused
+
+def take_action(action):
+    '''press corresponding keys
+
+    Args:
+        action (int): action index
+
+    '''
+    raise NotImplementedError
+
 
 attack = partial(press_key, KEY_MAP['J'])
 defense = partial(press_key, KEY_MAP['k'])

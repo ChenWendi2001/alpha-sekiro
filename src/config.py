@@ -15,9 +15,17 @@ class Config():
         parser.add_argument("--lr", type=float, default=0.01)
         parser.add_argument("--weight_decay", type=float, default=1e-6)
         parser.add_argument("--lr_decay", type=float, default=0.99)
+        parser.add_argument('--lr_decay_every', type=int, default=200)
         parser.add_argument("--discount", type=float, default=0.98)
+        parser.add_argument("--update_target_every", type=int, default=300)
         parser.add_argument("--model_dir", type=str, default=os.path.join(cwd, "checkpoints"))
         parser.add_argument("--batch_size", type=int, default=64)
+        parser.add_argument("--dropout", type=float, default=1)
+        parser.add_argument("--episodes", type=int, default=10)
+        parser.add_argument("--epsilon_start", type=float, default=1)
+        parser.add_argument("--epsilon_decay", type=float, default=0.995)
+        parser.add_argument("--epsilon_end", type=float, default=0.1)
+        parser.add_argument("--save_model_every", type=int, default=10)
         self.initialize = True
         return parser
 

@@ -2,76 +2,74 @@ import copy
 
 import numpy as np
 import torch
-from icecream import ic
-from tqdm import tqdm
+from tqdm import tqdm, trange
+import random
+import time
+import datetime
 
-from agent.d3qn import D3QN
-from train_utils.game import playGame
-from train_utils.replay_buffer import ReplayBuffer
+from agent import Agent
+from config import Config
+from utils import screenshot as Screenshot, control as Control
+from utils import reward as Reward
+from transition import State, Transition
 
 
 class Trainer():
-    def __init__(self) -> None:
-        self.net = D3QN()
-        self.cnt = 0  # version of best net
-        self.best_net = copy.deepcopy(self.net)
-        self.replay_buffer = ReplayBuffer()
-        self.epsilon = 0.01
+    def __init__(self, config) -> None:
+        self.agent = Agent(config)
+        self.config = config
+        
+        # epsilon
+        self.epsilon = config.epsilon_start
+        self.epsilon_decay = config.epsilon_decay
+        self.epsilon_end = config.epsilon_end
 
-    def collectData(self):
-        for _ in tqdm(range(2)):
-            episode_data = playGame(
-                self.net, self.epsilon,
-                np.random.randint(2 ** 30))
-            self.replay_buffer.add(episode_data)
-
-        # self.epsilon -= TRAIN_CONFIG.delta_epsilon
-        # self.epsilon = max(self.epsilon, TRAIN_CONFIG.min_epsilon)
-
-    def train(self):
-        ic("train model")
-
-        total_num, mean_loss = 0, 0
-        epochs = 2
-        for _ in tqdm(range(epochs)):
-            data_batch = self.replay_buffer.sample()
-            loss = self.net.trainStep(data_batch)
-            total_num += data_batch[-1].shape[0]
-            mean_loss += loss * data_batch[-1].shape[0]
-        mean_loss /= total_num
-        ic(mean_loss)
 
     def run(self):
-        """[summary]
-        pipeline: collect data, train, evaluate, update and repeat
-        """
-        for i in range(1, 1000 + 1):
-            # >>>>> collect data
-            self.collectData()
-            print("Round {} finish, buffer size {}".format(
-                i, self.replay_buffer.size()))
-            # save data
-            if i % 100 == 0:
-                self.replay_buffer.save(version=i)
+        '''_summary_
+        '''
+        paused = True
+        paused = Control.pause_game(paused)
+       
+        for episode in trange(self.config.episodes):
+            # first frame
+            obs = Screenshot.fetch_image()
+            cur_state = State(obs=obs)
+            done = False
 
-            # >>>>> train
-            if self.replay_buffer.enough():
-                self.train()
+            last_time = time.time()
+            total_reward = 0
+            while True:
+                last_time = time.time()
+                if random.random() >= self.epsilon:
+                    pred = self.agent.act(cur_state)
+                    action_sort = np.squeeze(np.argsort(pred)[::-1])
+                    action = action_sort[0]
 
-            # >>>>> evaluate
-            if i % 20 == 0:
-                raise NotImplementedError
-                win_rate = self.evaluate()
-                if win_rate >= TRAIN_CONFIG.update_threshold:
-                    self.cnt += 1
-                    self.best_net = copy.deepcopy(self.net)
-                    self.best_net.save(version=self.cnt)
-                    message = "new best model {}!".format(self.cnt)
-                    ic(message)
                 else:
-                    ic("reject new model.")
+                    action = random.randint(0, config.action_dim)
 
+                Control.take_action(action)
+                if self.epsilon > self.epsilon_end:
+                    self.epsilon *= self.epsilon_decay
+                next_obs = Screenshot.fetch_image()
+                next_state = State(obs=next_obs)
+                reward, done = Reward.get_reward(cur_state, next_state)
+                self.agent.store_transition(Transition(
+                    state=cur_state,
+                    action=action,
+                    next_state=next_state,
+                    reward=reward
+                ))
+                if len(self.agent.replay_buffer) > self.config.batch_size:
+                    self.agent.trian_Q_network()
+                paused = Control.pause_game(paused)
+                if done == 1:
+                    break
+            if episode % self.config.save_model_every:
+                torch.save(self.agent.policy_net.state_dict(), "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")))
 
 if __name__ == "__main__":
-    trainer = Trainer()
+    config = Config().parse()
+    trainer = Trainer(config)
     trainer.run()
