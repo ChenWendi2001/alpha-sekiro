@@ -80,4 +80,4 @@ def wait_command(paused):
 
 if __name__ == "__main__":
     for i in range(10):
-        pydirectinput.press('Z')
+        pydirectinput.press('z')
