@@ -51,8 +51,9 @@ class Trainer():
             self_blood_animation_state = 0
 
             while True:
+
                 # calculate latency
-                logging.info('loop took {} seconds'.format(time.time()-last_time))
+                logging.info('curr: {}, loop took {} seconds'.format(self.agent.step, time.time()-last_time))
                 last_time = time.time()
 
                 # Russian roulette
@@ -99,9 +100,6 @@ class Trainer():
 
                 cur_state = next_state
 
-                # traing one step
-                if len(self.agent.replay_buffer) > self.config.batch_size:
-                    self.agent.train_Q_network()
 
                 # check "T" key 
                 paused = Control.wait_command(paused)
@@ -109,13 +107,18 @@ class Trainer():
                 total_reward += reward
                 if done == 1:
 
-                    time.sleep(6)
+                    time.sleep(7)
                     Control.lock()
                     time.sleep(0.5)
                     Control.click()
+                    time.sleep(0.5)
                     break
+
+                # traing one step
+                if len(self.agent.replay_buffer) > self.config.batch_size:
+                    self.agent.train_Q_network()
             
-            if episode % self.config.save_model_every:
+            if episode % self.config.save_model_every == 0:
                 if not os.path.exists(config.model_dir):
                     os.mkdir(config.model_dir)
                 torch.save(self.agent.policy_net.state_dict(), os.path.join(config.model_dir, "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))))

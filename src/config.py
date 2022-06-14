@@ -25,7 +25,7 @@ class Config():
         parser.add_argument("--epsilon_start", type=float, default=1)
         parser.add_argument("--epsilon_decay", type=float, default=0.998)
         parser.add_argument("--epsilon_end", type=float, default=0.05)
-        parser.add_argument("--save_model_every", type=int, default=500)
+        parser.add_argument("--save_model_every", type=int, default=20)
         self.initialize = True
         return parser
 
