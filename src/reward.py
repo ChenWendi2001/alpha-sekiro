@@ -14,10 +14,10 @@ def get_reward(old_state: State, new_state: State, self_blood_animation_state: i
     '''
     if new_state.self_blood < 3 or new_state.self_blood - old_state.self_blood > 0: # self dead
         reward = -10
-        done = True
+        done = 1
     elif new_state.boss_blood - old_state.boss_blood > 15: # boss dead
         reward = 20
-        done = False
+        done = 0
     else:
         self_blood_reward = 0
         boss_blood_reward = 0
@@ -33,6 +33,6 @@ def get_reward(old_state: State, new_state: State, self_blood_animation_state: i
             boss_blood_reward = 4
         
         reward = self_blood_reward + boss_blood_reward
-        done = False
+        done = 0
 
     return reward, done, self_blood_animation_state
