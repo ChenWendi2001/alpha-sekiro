@@ -35,7 +35,6 @@ class Trainer():
         Control.lock()
         for episode in trange(self.config.episodes):
             # start a new game by pressing 'T' on game window
-            time.sleep(2)
 
 
             # get first frame
@@ -105,7 +104,7 @@ class Trainer():
                 total_reward += reward
                 if done == 1:
 
-                    time.sleep(7)
+                    time.sleep(6)
                     Control.lock()
                     time.sleep(0.5)
                     Control.click()
