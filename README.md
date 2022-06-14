@@ -8,6 +8,7 @@ Learn to play Sekiro with reinforcement learning.
 安装时请注意版本。
 ```bash
 pip install pywin32==227
+pip install pydirectinput
 ```
 
 ### 源代码文件说明

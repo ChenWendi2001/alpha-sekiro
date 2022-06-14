@@ -4,35 +4,17 @@ import time
 import ctypes
 import logging
 
+import pydirectinput
+
 from functools import partial
 
-# virtual key codes map
-# please refer to <https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes>
-KEY_MAP = {}
 
-# add alphabet
-KEY_MAP.update({chr(c): 0x41+i for i, c in enumerate(range(ord('a'),ord('z')+1))})
-KEY_MAP.update({chr(c): 0x41+i for i, c in enumerate(range(ord('A'),ord('Z')+1))})
-KEY_MAP.update({"MID": 0x04}) # middle mouse button
-KEY_MAP.update({"LEFT": 0x01}) # left mouse button
-KEY_MAP.update({"SHIFT": 0x10})
-KEY_MAP.update({"SPACE": 0x20})
-print(KEY_MAP)
-
-def press_key(num):
-    MapVirtualKey = ctypes.windll.user32.MapVirtualKeyA
-    time.sleep(0.05)
-    win32api.keybd_event(num, MapVirtualKey(num, 0), 0, 0)
-    time.sleep(0.05)
-    win32api.keybd_event(num, MapVirtualKey(num, 0), win32con.KEYEVENTF_KEYUP, 0)
-
-
-attack = partial(press_key, KEY_MAP['J'])
-defense = partial(press_key, KEY_MAP['k'])
-dodge = partial(press_key, KEY_MAP['SHIFT'])
-jump = partial(press_key, KEY_MAP['SPACE'])
-lock = partial(press_key, KEY_MAP['MID'])
-click = partial(press_key, KEY_MAP['LEFT'])
+attack = partial(pydirectinput.click)
+defense = partial(pydirectinput.rightClick)
+dodge = partial(pydirectinput.press, 'shift')
+jump = partial(pydirectinput.press, 'space')
+lock = partial(pydirectinput.middleClick)
+click = partial(pydirectinput.click)
 
 keyList = ["\b"]
 for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ 123456789,.'£$/\\":
