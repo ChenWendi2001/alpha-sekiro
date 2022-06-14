@@ -103,11 +103,13 @@ class Trainer():
 
                 total_reward += reward
                 if done == 1:
-                    time.sleep(1)
+                    time.sleep(5)
                     Control.click()
                     break
             
             if episode % self.config.save_model_every:
+                if not os.path.exists(config.model_dir):
+                    os.mkdir(config.model_dir)
                 torch.save(self.agent.policy_net.state_dict(), os.path.join(config.model_dir, "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))))
 
 if __name__ == "__main__":
