@@ -32,10 +32,11 @@ class Trainer():
         '''
         paused = True
         paused = Control.wait_command(paused)
-       
+        Control.lock()
         for episode in trange(self.config.episodes):
             # start a new game by pressing 'T' on game window
-            Control.lock()
+            time.sleep(2)
+
 
             # get first frame
             obs = Screenshot.fetch_image()
@@ -103,7 +104,10 @@ class Trainer():
 
                 total_reward += reward
                 if done == 1:
-                    time.sleep(5)
+
+                    time.sleep(7)
+                    Control.lock()
+                    time.sleep(0.5)
                     Control.click()
                     break
             
@@ -118,7 +122,7 @@ if __name__ == "__main__":
 
     # logging setting
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     trainer = Trainer(config)
     trainer.run()

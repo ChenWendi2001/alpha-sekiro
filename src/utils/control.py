@@ -9,12 +9,12 @@ import pydirectinput
 from functools import partial
 
 
-attack = partial(pydirectinput.click)
-defense = partial(pydirectinput.rightClick)
+attack = partial(pydirectinput.press, 'j')
+defense = partial(pydirectinput.press, 'k')
 dodge = partial(pydirectinput.press, 'shift')
 jump = partial(pydirectinput.press, 'space')
-lock = partial(pydirectinput.middleClick)
-click = partial(pydirectinput.click)
+lock = partial(pydirectinput.press, 'l')
+click = partial(pydirectinput.press, 'j')
 
 def take_action(action):
     '''press corresponding keys
@@ -23,7 +23,6 @@ def take_action(action):
         action (int): action index
 
     '''
-    lock()
     [attack, defense, dodge, jump][action]()
 
 keyList = ["\b"]
