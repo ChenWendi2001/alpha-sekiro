@@ -16,6 +16,16 @@ jump = partial(pydirectinput.press, 'space')
 lock = partial(pydirectinput.middleClick)
 click = partial(pydirectinput.click)
 
+def take_action(action):
+    '''press corresponding keys
+
+    Args:
+        action (int): action index
+
+    '''
+    lock()
+    [attack, defense, dodge, jump][action]()
+
 keyList = ["\b"]
 for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ 123456789,.'£$/\\":
     keyList.append(char)
@@ -66,18 +76,8 @@ def wait_command(paused):
                     time.sleep(1)
     return paused
 
-def take_action(action):
-    '''press corresponding keys
-
-    Args:
-        action (int): action index
-
-    '''
-    [attack, defense, dodge, jump][action]()
-
-
 
 
 if __name__ == "__main__":
     for i in range(10):
-        press_key(KEY_MAP['Z'])
+        pydirectinput.press('Z')
