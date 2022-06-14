@@ -207,7 +207,7 @@ class Agent():
 
         self.optimizer.zero_grad()
         loss.backward()
-        logging.info("loss: {}".format(loss.item()))
+        # logging.info("loss: {}".format(loss.item()))
 
         # gradient clip
         for param in self.policy_net.parameters():

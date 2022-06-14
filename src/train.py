@@ -56,15 +56,18 @@ class Trainer():
                 last_time = time.time()
 
                 # Russian roulette
+                
                 if random.random() >= self.epsilon:
+                    random_action = False
                     pred = self.agent.act(cur_state)
                     action_sort = np.squeeze(np.argsort(pred)[::-1])
                     action = action_sort[0]
                 else:
+                    random_action = True
                     action = random.randint(0, config.action_dim - 1)
 
 
-                logging.info("Action: {}".format(action))
+                logging.info("Action: {} [{}]".format(action, "random" if random_action else "learned"))
                 Control.take_action(action)
 
                 # update epsilon
@@ -84,7 +87,7 @@ class Trainer():
 
                 if done:
                     logging.info("player died!")
-                else:
+                
                     logging.info("reward: {}".format(reward))
 
                 self.agent.store_transition(Transition(
@@ -93,6 +96,8 @@ class Trainer():
                     next_state=(next_state if not done else None),
                     reward=reward
                 ))
+
+                cur_state = next_state
 
                 # traing one step
                 if len(self.agent.replay_buffer) > self.config.batch_size:

@@ -1,4 +1,6 @@
 from transition import State
+import logging
+
 def get_reward(old_state: State, new_state: State, self_blood_animation_state: int):
     '''_summary_
 
@@ -30,6 +32,7 @@ def get_reward(old_state: State, new_state: State, self_blood_animation_state: i
             self_blood_animation_state = 0
         
         if new_state.boss_blood - old_state.boss_blood <= -3:
+            logging.info("Hurt Boss! boss blood: {} -> {}".format(old_state.boss_blood, new_state.boss_blood))
             boss_blood_reward = 4
         
         reward = self_blood_reward + boss_blood_reward
