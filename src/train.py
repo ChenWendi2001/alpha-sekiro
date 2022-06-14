@@ -87,8 +87,8 @@ class Trainer():
 
                 if done:
                     logging.info("player died!")
-                
-                    logging.info("reward: {}".format(reward))
+
+                logging.info("reward: {}".format(reward))
 
                 self.agent.store_transition(Transition(
                     state=cur_state,
