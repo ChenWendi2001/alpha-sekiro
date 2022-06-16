@@ -75,7 +75,15 @@ def wait_command(paused):
                     time.sleep(1)
     return paused
 
+# cheat interact
+def reset_cheater():
+    pydirectinput.press("home")
 
+def infinite_respawn():
+    pydirectinput.keyDown("ctrl")
+    pydirectinput.press("6")
+    pydirectinput.press("7")
+    pydirectinput.keyUp("ctrl")
 
 if __name__ == "__main__":
     for i in range(10):

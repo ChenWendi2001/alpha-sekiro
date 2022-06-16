@@ -34,6 +34,8 @@ class Trainer():
         paused = True
         paused = Control.wait_command(paused)
         env = SekiroEnv()
+        Control.reset_cheater()
+        Control.infinite_respawn()
 
         # start a new game by pressing 'T' on game window
         # get first frame

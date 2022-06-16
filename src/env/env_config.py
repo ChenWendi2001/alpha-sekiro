@@ -16,6 +16,8 @@ ENV_KEYMAP = {
     "resume": "esc",
     "revive": "j",
     "focus": "l",
+    "switch_full_blood": "1",
+    "switch_visible": "."
 }
 
 # HACK: (left, top, right, bottom)

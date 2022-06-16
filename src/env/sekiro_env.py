@@ -11,7 +11,7 @@ from .actions import Actor
 from .env_config import AGENT_KEYMAP, GAME_NAME, REVIVE_DELAY
 from .observation import Observer
 from .utils import timeLog
-
+from utils import control as Control
 
 class SekiroEnv():
     def __init__(self) -> None:
@@ -84,6 +84,7 @@ class SekiroEnv():
             time.sleep(10)
             self.actor.envAction("focus")
             self.actor.envAction("revive", action_delay=REVIVE_DELAY)
+            # pause game
             self.actor.envAction("pause", action_delay=1)
 
         if obs[2] == 0:
@@ -101,7 +102,15 @@ class SekiroEnv():
         win32gui.SetForegroundWindow(self.handle)
         time.sleep(0.5)
 
+        # resume game 
         self.actor.envAction("resume", action_delay=True)
+
+        # make agent full blood
+        self.actor.envAction("switch_visible")
+        self.actor.envAction("switch_full_blood")
+        self.actor.envAction("switch_full_blood")
+        self.actor.envAction("switch_visible")
+
 
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)
