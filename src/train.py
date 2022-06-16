@@ -7,6 +7,7 @@ import random
 import time
 import datetime
 import logging
+from icecream import ic
 import os
 
 from agent import Agent
@@ -14,7 +15,7 @@ from config import Config
 from utils import screenshot as Screenshot, control as Control
 import reward as Reward
 from transition import State, Transition
-
+from env import SekiroEnv
 
 class Trainer():
     def __init__(self, config) -> None:
@@ -32,13 +33,13 @@ class Trainer():
         '''
         paused = True
         paused = Control.wait_command(paused)
-        Control.lock()
+        env = SekiroEnv()
         for episode in trange(self.config.episodes):
             # start a new game by pressing 'T' on game window
 
 
             # get first frame
-            obs = Screenshot.fetch_image()
+            obs = env.reset()
             cur_state = State(obs)
 
             # preset
@@ -46,9 +47,6 @@ class Trainer():
             last_time = time.time()
             total_reward = 0
 
-            # avoid multi-judging during the animation of blood decreaing 
-            # 0: not in animation, 1: in animation
-            self_blood_animation_state = 0
 
             while True:
 
@@ -69,27 +67,15 @@ class Trainer():
 
 
                 logging.info("Action: {} [{}]".format(action, "random" if random_action else "learned"))
-                Control.take_action(action)
+
 
                 # update epsilon
                 if self.epsilon > self.epsilon_end:
                     self.epsilon *= self.epsilon_decay
                 
                 # get next state
-                next_obs = Screenshot.fetch_image()
+                next_obs, reward, done, _ = env.step(action)
                 next_state = State(obs=next_obs)
-
-                # calculate reward and judge result
-                reward, done, self_blood_animation_state = Reward.get_reward(
-                    cur_state, 
-                    next_state,
-                    self_blood_animation_state
-                    )
-
-                if done:
-                    logging.info("player died!")
-
-                logging.info("reward: {}".format(reward))
 
                 self.agent.store_transition(Transition(
                     state=cur_state,
@@ -105,13 +91,7 @@ class Trainer():
                 paused = Control.wait_command(paused)
 
                 total_reward += reward
-                if done == 1:
-
-                    time.sleep(7)
-                    Control.lock()
-                    time.sleep(0.5)
-                    Control.click()
-                    time.sleep(0.5)
+                if done:
                     break
 
                 # traing one step
@@ -128,8 +108,9 @@ if __name__ == "__main__":
     config = Config().parse()
 
     # logging setting
+    ic.disable()
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     trainer = Trainer(config)
     trainer.run()

@@ -9,15 +9,20 @@ class State():
     def __init__(self, obs) -> None:
         '''generate state from obs(screen shot)
 
-        Args:
-            obs (numpy array): 
+        Args:      
+            observation(Tuple):
+                focus_area      npt.NDArray[np.uint8], "L"
+                agent_hp        float
+                boss_hp         float
+                agent_ep        float
+                boss_ep         float
         '''
         
-        self.image = np.transpose(get_state_image(obs), axes=(2, 0, 1))
-        self.self_blood = get_self_blood(obs)
-        self.boss_blood = get_boss_blood(obs)
-        self.self_endurance = get_self_endurance(obs)
-        self.boss_endurance = get_boss_endurance(obs)
+        self.image = obs[0]
+        self.self_blood = obs[1]
+        self.boss_blood = obs[2]
+        self.self_endurance = obs[3]
+        self.boss_endurance = obs[4]
 
 
 class Transition():
