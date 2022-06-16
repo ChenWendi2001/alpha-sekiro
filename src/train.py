@@ -34,20 +34,20 @@ class Trainer():
         paused = True
         paused = Control.wait_command(paused)
         env = SekiroEnv()
+
+        # start a new game by pressing 'T' on game window
+        # get first frame
+        obs = env.reset()
+        time.sleep(0.05)
+        Control.lock()
+        cur_state = State(obs)
+
+        # preset
+        done = False
+        last_time = time.time()
+        total_reward = 0
         for episode in trange(self.config.episodes):
-            # start a new game by pressing 'T' on game window
-
-
-            # get first frame
-            obs = env.reset()
-            cur_state = State(obs)
-
-            # preset
-            done = False
-            last_time = time.time()
-            total_reward = 0
-
-
+            
             while True:
 
                 # calculate latency
@@ -102,6 +102,14 @@ class Trainer():
                 if not os.path.exists(config.model_dir):
                     os.mkdir(config.model_dir)
                 torch.save(self.agent.policy_net.state_dict(), os.path.join(config.model_dir, "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))))
+
+            obs = env.reset()
+            cur_state = State(obs)
+
+            # preset
+            done = False
+            last_time = time.time()
+            total_reward = 0
 
 if __name__ == "__main__":
     
