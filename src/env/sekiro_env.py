@@ -33,6 +33,9 @@ class SekiroEnv():
 
     def __stepReward(self, obs: Tuple) -> float:
         agent_hp, boss_hp, agent_ep, boss_ep = obs[1:]
+
+        if boss_hp < self.last_boss_hp:
+            logging.info(f"Hurt Boss! {self.last_boss_hp: 1f} -> {boss_hp: 1f}")
         # TODO: refine reward
         rewards = np.array(
             [agent_hp - self.last_agent_hp,
@@ -83,6 +86,9 @@ class SekiroEnv():
             logging.info("player died!")
             time.sleep(10)
             self.actor.envAction("focus")
+                
+            self.actor.envAction("switch_full_blood")
+            self.actor.envAction("switch_full_blood")
             self.actor.envAction("revive", action_delay=REVIVE_DELAY)
             # pause game
             self.actor.envAction("pause", action_delay=1)
@@ -105,12 +111,13 @@ class SekiroEnv():
         # resume game 
         self.actor.envAction("resume", action_delay=True)
 
+        '''
         # make agent full blood
         self.actor.envAction("switch_visible")
         self.actor.envAction("switch_full_blood")
         self.actor.envAction("switch_full_blood")
         self.actor.envAction("switch_visible")
-
+        '''
 
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)
