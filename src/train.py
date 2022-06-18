@@ -41,13 +41,13 @@ class Trainer():
         # get first frame
         obs = env.reset()
         time.sleep(0.05)
-        Control.lock()
         cur_state = State(obs)
 
         # preset
         done = False
         last_time = time.time()
         total_reward = 0
+        
         for episode in trange(self.config.episodes):
             
             while True:
