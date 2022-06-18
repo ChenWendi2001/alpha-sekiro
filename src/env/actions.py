@@ -2,6 +2,8 @@ import logging
 import time
 from xmlrpc.client import Boolean
 
+from typing import Tuple
+
 import pydirectinput
 
 from .utils import timeLog
@@ -24,7 +26,16 @@ class Actor():
             logging.critical("invalid agent action")
             raise RuntimeError()
 
-        pydirectinput.press(self.agent_keymap[key])
+        if isinstance(self.agent_keymap[key], str):
+            pydirectinput.press(self.agent_keymap[key])
+
+        if isinstance(self.agent_keymap[key], tuple):
+            (hold, inst) = self.agent_keymap[key]
+            pydirectinput.keyDown(hold)
+            pydirectinput.press(inst)
+            pydirectinput.keyUp(hold)
+
+        
         logging.info(f"action: {key}")
 
         time.sleep(action_delay)

@@ -42,10 +42,10 @@ class SekiroEnv():
              self.last_boss_hp - boss_hp,
              min(0, self.last_agent_ep - agent_ep),
              max(0, boss_ep - self.last_boss_ep)])
-        weights = np.array([0.2, 0.2, 0.1, 0.1])
+        weights = np.array([0.5, 5, 0.1, 0.1])
         reward = weights.dot(rewards).item()
 
-        reward = -100 if agent_hp == 0 else reward
+        reward = -20 if agent_hp == 0 else reward
 
         self.last_agent_hp = agent_hp
         self.last_agent_ep = agent_ep

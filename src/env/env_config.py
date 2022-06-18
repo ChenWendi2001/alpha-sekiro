@@ -9,6 +9,9 @@ AGENT_KEYMAP = {
     "defense": "k",
     "dodge": "shift",
     "jump": "space",
+    "left_dodge": ("a", "shift"),
+    "right_dodge": ('d', "shift"),
+    "back_dodge": ('s', "shift")
 }
 
 ENV_KEYMAP = {
