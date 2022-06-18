@@ -53,21 +53,21 @@ def wait_command(paused):
     if win32api.GetAsyncKeyState(ord('T')):
         if paused:
             paused = False
-            logging.info('start game')
+            logging.info('start dqn model')
             time.sleep(1)
         else:
             paused = True
-            logging.info('pause game')
+            logging.info('pause dqn model')
             time.sleep(1)
     if paused:
-        logging.info('paused press "T" in game to start')
+        logging.info('paused press "T" in game to start dqn model')
         while True:
            
             # pauses game and can get annoying.
             if win32api.GetAsyncKeyState(ord('T')):
                 if paused:
                     paused = False
-                    logging.info('start game')
+                    logging.info('start dqn model')
                     time.sleep(1)
                     break
                 else:

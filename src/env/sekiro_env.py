@@ -94,8 +94,8 @@ class SekiroEnv():
             self.actor.envAction("pause", action_delay=1)
 
         if obs[2] == 0:
-            # TODO: succeed
-            raise NotImplementedError()
+            logging.info("Boss died! The dqn will be paused!")
+            self.actor.envAction("stop_dqn")
 
         return obs, self.__stepReward(obs), done, None
 

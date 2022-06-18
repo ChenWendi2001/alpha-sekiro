@@ -120,7 +120,7 @@ if __name__ == "__main__":
     # logging setting
     ic.disable()
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     trainer = Trainer(config)
     trainer.run()
