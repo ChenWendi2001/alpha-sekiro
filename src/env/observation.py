@@ -23,16 +23,19 @@ from .env_config import (AGENT_EP_ANCHOR, AGENT_HP_ANCHOR, BOSS_EP_ANCHOR,
 
 
 
-red = np.array([[46, 61, 124] * 7]).reshape(7, 3)
+
 def get_blood(image:np.array, height:Tuple, width: Tuple):
     blood_bar = image[height[0]:height[1], width[0]:width[1]]
+    blood_bar = cv2.cvtColor(blood_bar, cv2.COLOR_RGB2BGR)
     blood_edge = cv2.Canny(cv2.GaussianBlur(blood_bar,(5,5),0), 0, 100)
 
     # FIXME: error when low blood √
     # NOTE: check that the blood should be red
     blood = int(np.median(blood_edge.argmax(axis=-1)))
-    sample = blood_bar[:, blood / 2]
+    sample = blood_bar[:, blood // 2]
+    
     blood = int(blood / (width[1] - width[0]) * 100)
+    red = np.array([[46, 61, 124]])
     return blood if np.linalg.norm(red - sample, 2) < 200 else 0
 
 class Observer():
@@ -142,8 +145,8 @@ class Observer():
             screen_shot.astype(np.uint8).transpose(1, 2, 0)).convert("HSV"),
             dtype=np.int16).transpose(2, 0, 1)
 
-        agent_hp = get_blood(screen_shot, height=SELF_BLOOD_HEIGHT, width=SELF_BLOOD_WIDTH)
-        boss_hp = get_blood(screen_shot, height=BOSS_BLOOD_HEIGHT, width=BOSS_BLOOD_WIDTH)
+        agent_hp = get_blood(screen_shot.astype(np.uint8).transpose(1, 2, 0), height=SELF_BLOOD_HEIGHT, width=SELF_BLOOD_WIDTH)
+        boss_hp = get_blood(screen_shot.astype(np.uint8).transpose(1, 2, 0), height=BOSS_BLOOD_HEIGHT, width=BOSS_BLOOD_WIDTH)
         """ 
         agent_hp = self.__calcProperty(
             arr=self.__select(hsv_screen_shot, AGENT_HP_ANCHOR),
