@@ -75,8 +75,16 @@ class Trainer():
                 if self.epsilon > self.epsilon_end:
                     self.epsilon *= self.epsilon_decay
                 
+                # exec action
+                env.step(action)
+                
+                # traing one step
+                if len(self.agent.replay_buffer) > self.config.batch_size:
+                    self.agent.train_Q_network()
+                
                 # get next state
-                next_obs, reward, done, _ = env.step(action)
+                next_obs, reward, done, _ = env.obs()
+
                 next_state = State(obs=next_obs)
 
                 self.agent.store_transition(Transition(
@@ -96,11 +104,8 @@ class Trainer():
                 if done:
                     break
 
-                # traing one step
-                if len(self.agent.replay_buffer) > self.config.batch_size:
-                    self.agent.train_Q_network()
             
-            if episode % self.config.save_model_every == 0:
+            if (episode + 1) % self.config.save_model_every == 0:
                 if not os.path.exists(config.model_dir):
                     os.mkdir(config.model_dir)
                 torch.save(self.agent.policy_net.state_dict(), os.path.join(config.model_dir, "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))))
