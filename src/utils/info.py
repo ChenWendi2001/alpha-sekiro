@@ -8,24 +8,17 @@ from .screenshot import fetch_image
 
 from typing import Tuple
 
+red = np.array([[46, 61, 124] * 7]).reshape(7, 3)
 def get_blood(image:np.array, height:Tuple, width: Tuple):
-    image = fetch_image()
-    
-    #cv2.imwrite("test.jpg", image)
-    # image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
     blood_bar = image[height[0]:height[1], width[0]:width[1]]
-    # cv2.imwrite("test.jpg", blood_bar)
-    blood_bar = cv2.Canny(cv2.GaussianBlur(blood_bar,(5,5),0), 0, 100)
+    blood_edge = cv2.Canny(cv2.GaussianBlur(blood_bar,(5,5),0), 0, 100)
 
-    # debug code
-    # print(blood_bar.shape)
-    # cv2.imwrite("test.jpg", blood_bar)
-    # print(blood_bar.argmax(axis=-1))
-    
-    # FIXME: error when low blood 
-    blood = np.median(blood_bar.argmax(axis=-1))
+    # FIXME: error when low blood √
+    # NOTE: check that the blood should be red
+    blood = int(np.median(blood_edge.argmax(axis=-1)))
+    sample = blood_bar[:, blood / 2]
     blood = int(blood / (width[1] - width[0]) * 100)
-    return blood
+    return blood if np.linalg.norm(red - sample, 2) < 200 else 0
 
 def get_endurance(image: np.array, height: Tuple, width: Tuple):
     THRESHOLD = 171
