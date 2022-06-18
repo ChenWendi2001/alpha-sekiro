@@ -147,3 +147,11 @@ class Observer():
             focus_area.resize(FOCUS_SIZE), dtype=np.uint8).transpose(2, 0, 1)
 
         return focus_area, agent_hp, boss_hp, agent_ep, boss_ep
+
+    
+    def getRawFocusArea(self, screen_shot: npt.NDArray[np.int16]) -> \
+            npt.NDArray[np.uint8]:
+        
+        return self.__select(
+            screen_shot, FOCUS_ANCHOR).astype(np.uint8).transpose(1, 2, 0)
+

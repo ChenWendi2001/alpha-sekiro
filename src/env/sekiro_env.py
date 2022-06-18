@@ -111,13 +111,14 @@ class SekiroEnv():
         # resume game 
         self.actor.envAction("resume", action_delay=True)
 
-        '''
+        
         # make agent full blood
         self.actor.envAction("switch_visible")
-        self.actor.envAction("switch_full_blood")
-        self.actor.envAction("switch_full_blood")
+        self.actor.envAction("switch_invincible")
+        self.actor.autoLock(self.observer.shotScreen, self.observer.getRawFocusArea)
+        self.actor.envAction("switch_invincible")
         self.actor.envAction("switch_visible")
-        '''
+        
 
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)

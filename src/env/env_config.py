@@ -18,7 +18,8 @@ ENV_KEYMAP = {
     "focus": "l",
     "switch_full_blood": "1",
     "switch_visible": ".",
-    "stop_dqn": "t"
+    "stop_dqn": "t",
+    "switch_invincible": "2",
 }
 
 # HACK: (left, top, right, bottom)
