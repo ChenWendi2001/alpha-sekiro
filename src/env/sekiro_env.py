@@ -55,8 +55,12 @@ class SekiroEnv():
         logging.info(f"reward: {reward:<.2f}")
         return reward
 
+    def step(self, action: int): 
+        action_key = list(AGENT_KEYMAP.keys())[action]
+        self.actor.agentAction(action_key)
+
     @timeLog
-    def step(self, action: int) -> Tuple[Tuple[npt.NDArray[np.uint8],
+    def obs(self) -> Tuple[Tuple[npt.NDArray[np.uint8],
                                                float, float, float, float],
                                          float, bool, None]:
         """[summary]
@@ -74,8 +78,6 @@ class SekiroEnv():
             done            bool
             info            None
         """
-        action_key = list(AGENT_KEYMAP.keys())[action]
-        self.actor.agentAction(action_key)
 
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)
@@ -116,7 +118,7 @@ class SekiroEnv():
         self.actor.envAction("resume", action_delay=True)
 
         self.actor.autoLock(self.observer.shotScreen, self.observer.getRawFocusArea)
-        
+
         self.actor.envAction("switch_invincible")
         self.actor.envAction("switch_visible")
         
