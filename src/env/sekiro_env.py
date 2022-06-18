@@ -108,14 +108,15 @@ class SekiroEnv():
         win32gui.SetForegroundWindow(self.handle)
         time.sleep(0.5)
 
+        # auto focus
+        self.actor.envAction("switch_visible")
+        self.actor.envAction("switch_invincible")
+
         # resume game 
         self.actor.envAction("resume", action_delay=True)
 
-        
-        # make agent full blood
-        self.actor.envAction("switch_visible")
-        self.actor.envAction("switch_invincible")
         self.actor.autoLock(self.observer.shotScreen, self.observer.getRawFocusArea)
+        
         self.actor.envAction("switch_invincible")
         self.actor.envAction("switch_visible")
         
