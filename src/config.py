@@ -10,7 +10,7 @@ class Config():
         cwd = os.path.dirname(__file__)
         parser.add_argument("--obs_width", type=int, default=224) 
         parser.add_argument("--obs_height", type=int, default=224)
-        parser.add_argument("--action_dim", type=int, default=4)
+        parser.add_argument("--action_dim", type=int, default=7)
         parser.add_argument("--replay_capacity", type=int, default=2000)
         parser.add_argument("--lr", type=float, default=0.01)
         parser.add_argument("--weight_decay", type=float, default=1e-6)
