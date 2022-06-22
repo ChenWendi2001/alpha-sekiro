@@ -10,9 +10,12 @@ import logging
 from icecream import ic
 import os
 
+from tensorboardX import SummaryWriter
+
 from agent import Agent
 from config import Config
 from utils import screenshot as Screenshot, control as Control
+from utils.average_meter import AverageMeter
 import reward as Reward
 from transition import State, Transition
 from env import SekiroEnv
@@ -26,6 +29,14 @@ class Trainer():
         self.epsilon = config.epsilon_start
         self.epsilon_decay = config.epsilon_decay
         self.epsilon_end = config.epsilon_end
+
+        # tensorboard
+        self.trainwriter = SummaryWriter(f'{config.log_dir}/train')
+
+        # prepare folder
+        for dir in [config.log_dir, config.model_dir]:
+            if not os.path.exists(dir):
+                os.mkdir(dir)
 
 
     def run(self):
@@ -46,7 +57,8 @@ class Trainer():
         # preset
         done = False
         last_time = time.time()
-        total_reward = 0
+        reward_meter = AverageMeter("reward")
+        reward_meter.reset()
         
         for episode in trange(self.config.episodes):
             
@@ -80,7 +92,8 @@ class Trainer():
                 
                 # traing one step
                 if len(self.agent.replay_buffer) > self.config.batch_size:
-                    self.agent.train_Q_network()
+                    loss = self.agent.train_Q_network()
+                    self.trainwriter.add_scalar("loss/train", loss, episode)
                 
                 # get next state
                 next_obs, reward, done, _ = env.obs()
@@ -100,7 +113,8 @@ class Trainer():
                 # check "T" key 
                 paused = Control.wait_command(paused)
 
-                total_reward += reward
+                reward_meter.update(reward)
+                
                 if done:
                     break
 
@@ -116,7 +130,11 @@ class Trainer():
             # preset
             done = False
             last_time = time.time()
-            total_reward = 0
+            reward_meter.reset()
+
+            # tensorboard
+            self.trainwriter.add_scalar("reward_sum/train", reward_meter.sum, episode)
+            self.trainwriter.add_scalar("reward_avg/train", reward_meter.avg, episode)
 
 if __name__ == "__main__":
     

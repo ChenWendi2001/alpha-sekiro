@@ -1,4 +1,5 @@
 checkpoints/
+logs/
 __pycache__
 tempCodeRunnerFile.py
 src/env/debug/

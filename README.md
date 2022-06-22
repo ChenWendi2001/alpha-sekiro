@@ -9,6 +9,8 @@ Learn to play Sekiro with reinforcement learning.
 ```bash
 pip install pywin32==227
 pip install pydirectinput
+pip install tensorboard
+pip install tensorboardX
 ```
 
 ### 源代码文件说明

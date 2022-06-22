@@ -67,7 +67,6 @@ class Actor():
             pydirectinput.keyUp('o')
 
         def if_focus(image: np.array) -> None:
-            print(image.shape)
             gray = cv2.pyrMeanShiftFiltering(image, sp=10, sr=100)
             gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
             circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 200,

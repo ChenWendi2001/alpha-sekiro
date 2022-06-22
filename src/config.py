@@ -26,6 +26,7 @@ class Config():
         parser.add_argument("--epsilon_decay", type=float, default=0.999)
         parser.add_argument("--epsilon_end", type=float, default=0.05)
         parser.add_argument("--save_model_every", type=int, default=20)
+        parser.add_argument("--log_dir", type=str, default=os.path.join(cwd, '..', "logs"))
         self.initialize = True
         return parser
 
