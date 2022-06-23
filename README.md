@@ -11,6 +11,9 @@ pip install pywin32==227
 pip install pydirectinput
 pip install tensorboard
 pip install tensorboardX
+pip install -U openmim
+mim install mmcv-full
+pip install mmpose
 ```
 
 ### 源代码文件说明
