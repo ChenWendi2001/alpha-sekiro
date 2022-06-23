@@ -16,6 +16,12 @@ mim install mmcv-full
 pip install mmpose
 ```
 
+### 安装预训练姿态网络
+在根目录执行
+```bash
+mim download mmpose --config associative_embedding_mobilenetv2_coco_512x512  --dest ./pose_model
+```
+
 ### 源代码文件说明
 #### src/utils
 - 该文件夹包含模拟键盘与鼠标的输入的代码

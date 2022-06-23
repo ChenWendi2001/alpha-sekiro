@@ -1,5 +1,6 @@
 checkpoints/
 logs/
+pose_model/
 __pycache__
 tempCodeRunnerFile.py
 src/env/debug/
