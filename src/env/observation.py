@@ -2,6 +2,7 @@ import ctypes
 import logging
 import pickle
 from datetime import datetime
+from turtle import pos
 from typing import Tuple
 import os
 import cv2
@@ -188,7 +189,38 @@ class Observer():
             vis_pose_result(self.pose_model, input_focus_area, pose_result, \
                  out_file=os.path.join(self.debug_path,f"pose-{self.timestamp}.png"))
 
-        return focus_area, agent_hp, agent_ep, boss_hp
+        if len(pose_result) == 0:
+            pose_result = [{
+                'bbox': np.ones((5), dtype=np.float32) * -1,
+                'keypoints': np.ones((17, 3)) * -1
+            }]
+
+        # add one hot
+        pose_result = pose_result[0]
+
+        bbox = np.zeros((6), dtype=np.float32)
+        bbox[:4] = pose_result['bbox'][:4]
+        if pose_result['bbox'][4] > 0.5:
+            bbox[5] = 1
+        else:
+            bbox[4] = 1
+        
+        keypoints = np.zeros((17, 4), dtype=np.float32)
+        keypoints[:, :2] = pose_result['keypoints'][:, :2]
+        keypoints[:, 3] = pose_result['keypoints'][:, 2] > 0.5
+        keypoints[:, 2] = pose_result['keypoints'][:, 2] <= 0.5
+
+        keypoints[:, 0] -= np.min( keypoints[:, 0])
+        keypoints[:, 1] -= np.min( keypoints[:, 1])
+
+        pose_result = {
+            'bbox': bbox,
+            'keypoints': keypoints
+        }
+
+        print(pose_result)
+
+        return focus_area, agent_hp, agent_ep, boss_hp, pose_result
 
     def getRawFocusArea(self, screen_shot: npt.NDArray[np.int16]) -> \
             npt.NDArray[np.uint8]:

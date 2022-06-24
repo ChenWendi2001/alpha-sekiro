@@ -15,12 +15,14 @@ class State():
                 agent_hp        float
                 agent_ep        float
                 boss_hp         float
+                pose result     Tuple(np.float32, np.float32)
         '''
         
         self.image = obs[0]
         self.agent_hp = obs[1]
         self.agent_ep = obs[3]
         self.boss_hp = obs[2]
+        self.pose_result = obs[4]
 
 
 class Transition():
