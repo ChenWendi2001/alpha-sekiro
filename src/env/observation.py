@@ -11,6 +11,7 @@ import numpy.typing as npt
 from icecream import ic
 from PIL import Image, ImageGrab
 
+from mmpose.apis import (init_pose_model, inference_bottom_up_pose_model, vis_pose_result)
 
 from .utils import timeLog
 from .env_config import (AGENT_EP_ANCHOR, AGENT_HP_ANCHOR, BOSS_EP_ANCHOR,
@@ -71,6 +72,14 @@ class Observer():
             open(os.path.join(self.asset_path, "agent-ep-full.pkl"), "rb"))
         self.boss_ep_full = pickle.load(
             open(os.path.join(self.asset_path,"boss-ep-full.pkl"), "rb"))
+
+        # load pose model
+        root_path = os.path.join(os.path.dirname(__file__), "..", "..", "pose_model")
+        config_file = 'associative_embedding_mobilenetv2_coco_512x512.py'
+        checkpoint_file = 'mobilenetv2_coco_512x512-4d96e309_20200816.pth'
+        self.pose_model = init_pose_model(os.path.join(root_path, config_file), \
+            os.path.join(root_path, checkpoint_file), device='cuda:0')
+        logging.info("Successfully loaded pose model!")
 
     def __select(self, arr: npt.NDArray, anchor: Tuple) -> npt.NDArray:
         # NOTE: C x H x W
@@ -172,6 +181,12 @@ class Observer():
             focus_area.save(os.path.join(self.debug_path, f"focus-{self.timestamp}.png"))
         focus_area = np.array(
             focus_area.resize(FOCUS_SIZE), dtype=np.uint8).transpose(2, 0, 1)
+        
+        pose_result = inference_bottom_up_pose_model(self.pose_model, focus_area.transpose(1, 2, 0))[0]
+        print("pose!", pose_result)
+        if ic.enabled:
+            vis_pose_result(self.pose_model, focus_area.transpose(1, 2, 0), pose_result, \
+                 out_file=os.path.join(self.debug_path,f"pose-{self.timestamp}.png"))
 
         return focus_area, agent_hp, boss_hp, agent_ep, boss_ep
 

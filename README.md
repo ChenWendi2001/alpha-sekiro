@@ -11,6 +11,15 @@ pip install pywin32==227
 pip install pydirectinput
 pip install tensorboard
 pip install tensorboardX
+pip install -U openmim
+mim install mmcv-full
+pip install mmpose
+```
+
+### 安装预训练姿态网络
+在根目录执行
+```bash
+mim download mmpose --config associative_embedding_mobilenetv2_coco_512x512  --dest ./pose_model
 ```
 
 ### 源代码文件说明
