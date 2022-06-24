@@ -161,6 +161,65 @@ class Memory():
             helper_addr=guard_write_addr + 0x33b, helper_code_len=13,
             code_addr=code_addr, injected_code=injected_code)
 
+        # NOTE: live longer
+        """
+        48 ** ** ** 8B ** 89 ** ** ** 00 00 85 C0 7F
+        """
+        bytes_pattern = b"\x48...\x8b.\x89...\x00\x00\x85\xc0\x7f"
+        health_write_addr = pymem.pattern.pattern_scan_module(
+            self.pm.process_handle, module_game, bytes_pattern)
+        if health_write_addr is None:
+            logging.critical("can't live any longer")
+            raise RuntimeError()
+        """[code injection]
+        push rcx
+        push rbx
+        push rdx
+        mov rdx,dDamageMultiplier
+        mov rcx,pPlayer
+        cmp [rcx],rbx
+        jne @f
+        // mov rdx,ddamagemultiplierdefault2
+        lea rdx,[rdx+4]
+        @@:
+        test eax,eax
+        jz @f
+        lea rbx,[rbx+130]
+        cmp [rbx],eax
+        jle @f
+        mov ecx,[rbx]
+        sub ecx,eax
+        push rcx
+        fild dword ptr [rsp]
+        fmul dword ptr [rdx]
+        fistp dword ptr [rsp]
+        pop rcx
+        mov eax,[rbx]
+        sub eax,ecx
+        jns @f
+        xor eax,eax
+
+        @@:
+        pop rdx
+        pop rbx
+        pop rcx
+        """
+        code_addr = self.pm.allocate(256)
+        one = self.pm.allocate(8)  # 8 bytes
+        dot_one = self.pm.allocate(8)
+        self.pm.write_float(one, 1.0)
+        self.pm.write_float(dot_one, 0.1)
+        injected_code = b"\x51\x53\x52\x48\xBA" + one.to_bytes(8, "little") + \
+            b"\x48\xB9" + self.agent_mem_ptr.to_bytes(8, "little") + b"\x48\x39\x19\x0F\x85\x0D\x00\x00\x00" + \
+            b"\x48\xBA" + dot_one.to_bytes(8, "little") + b"\x48\x8D\x12\x85\xC0\x0F\x84\x29\x00\x00" + \
+            b"\x00\x48\x8D\x9B\x30\x01\x00\x00\x39\x03\x0F\x8E\x1A\x00" + \
+            b"\x00\x00\x8B\x0B\x29\xC1\x51\xDB\x04\x24\xD8\x0A\xDB\x1C" + \
+            b"\x24\x59\x8B\x03\x29\xC8\x0F\x89\x02\x00\x00\x00\x31\xC0\x5A\x5B\x59"
+        self.health_code_injection = CodeInjection(
+            self.pm, original_addr=health_write_addr + 6, original_code_len=6,
+            helper_addr=health_write_addr + 0x89B, helper_code_len=13,
+            code_addr=code_addr, injected_code=injected_code)
+
         self.agent_mem_ptr = partial(
             self.pm.read_ulonglong, self.agent_mem_ptr)
         self.boss_mem_ptr = partial(
@@ -173,6 +232,7 @@ class Memory():
         time.sleep(0.5)
 
     def restoreMemory(self) -> None:
+        self.health_code_injection.restoreMemory()
         self.agent_code_injection.restoreMemory()
         self.boss_code_injection.restoreMemory()
 
