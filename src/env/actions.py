@@ -7,6 +7,7 @@ from typing import Tuple
 import pydirectinput
 
 from .utils import timeLog
+from .memory import Memory
 
 from .env_config import AGENT_KEYMAP, ENV_KEYMAP
 
@@ -14,8 +15,9 @@ import cv2
 import numpy as np
 
 class Actor():
-    def __init__(self, handle) -> None:
+    def __init__(self, handle, memory) -> None:
         self.handle = handle
+        self.memory: Memory = memory
         self.agent_keymap = AGENT_KEYMAP
         self.env_keymap = ENV_KEYMAP
 
@@ -52,7 +54,7 @@ class Actor():
 
         time.sleep(action_delay)
 
-    def autoLock(self, fetch_image, focus_area):
+    def autoLock(self):
         def adjustVertical() -> None:
             pydirectinput.keyDown('u')
             time.sleep(1.5)
@@ -74,22 +76,13 @@ class Actor():
                                         minRadius=0, maxRadius=6)
             return circles is not None
 
-        get_focus_area = lambda: focus_area(fetch_image())
-        image = get_focus_area()
-        locked = if_focus(image)
+        locked = self.memory.lockBoss()
         adjustVertical()
-        for i in range(3):
-            image = get_focus_area()
-            locked &= if_focus(image)
+        locked = self.memory.lockBoss()
         while not locked:
             i = 0
             while not locked:
                 adjustHorizon(i)
-                pydirectinput.press("l")
-                image = get_focus_area()
-                locked = if_focus(image)
+                locked = self.memory.lockBoss()
                 i += 1
             
-            for i in range(3):
-                image = get_focus_area()
-                locked &= if_focus(image)

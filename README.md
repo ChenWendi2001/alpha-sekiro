@@ -14,6 +14,7 @@ pip install tensorboardX
 pip install -U openmim
 mim install mmcv-full
 pip install mmpose
+pip install pymem
 ```
 
 ### 安装预训练姿态网络
