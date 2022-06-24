@@ -169,7 +169,7 @@ class Memory():
         # NOTE: automatic boss lock
         # HACK: sekiro.exe + 0x3d78058
         self.state_mem_ptr = partial(
-            self.pm.read_ulonglong, module_game.lpBaseOfDll + 0x3d78058)
+            self.pm.read_ulonglong, module_game.lpBaseOfDll + 0x3d77fb8)
         time.sleep(0.5)
 
     def restoreMemory(self) -> None:

@@ -29,7 +29,6 @@ class SekiroEnv():
         self.last_agent_hp = 0
         self.last_agent_ep = 0
         self.last_boss_hp = 0
-        self.last_boss_ep = 0
 
         self.boss_dead = False
 
@@ -64,7 +63,7 @@ class SekiroEnv():
 
     @timeLog
     def obs(self) -> Tuple[Tuple[npt.NDArray[np.uint8],
-                                               float, float, float, float],
+                                               float, float, float],
                                          float, bool, None]:
         """[summary]
 
@@ -73,7 +72,6 @@ class SekiroEnv():
             agent_hp        float
             boss_hp         float
             agent_ep        float
-            boss_ep         float
 
         Returns:
             observation           Tuple
@@ -112,7 +110,7 @@ class SekiroEnv():
         return obs, self.__stepReward(obs), done, self.boss_dead
 
     def reset(self) -> Tuple[npt.NDArray[np.uint8],
-                             float, float, float, float]:
+                             float, float, float]:
         # restore window
         win32gui.SendMessage(self.handle, win32con.WM_SYSCOMMAND,
                              win32con.SC_RESTORE, 0)
@@ -128,7 +126,7 @@ class SekiroEnv():
         self.memory.transportAgent(MAP_CENTER)
         self.actor.autoLock()
 
-        self.memory.reviveAgent(need_delay=True)
+        self.memory.reviveAgent(need_delay=False)
         
 
         screen_shot = self.observer.shotScreen()

@@ -74,14 +74,3 @@ MAX_BOSS_EP = 4083
 
 MAP_CENTER = (-110.252, 54.077, 239.538)
 # <------
-
-# ------> screenshot
-# HACK: (left, top, right, bottom)
-SCREEN_SIZE = (720, 1280)
-SCREEN_ANCHOR = (1, -721, -1, -1)
-
-FOCUS_ANCHOR = (392, 108, 892, 608)
-FOCUS_SIZE = (128, 128)
-
-# BOSS_HP_ANCHOR = (75, 62, 348, 71)
-# <------

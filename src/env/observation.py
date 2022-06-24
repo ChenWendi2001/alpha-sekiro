@@ -149,8 +149,8 @@ class Observer():
         Observation:
             image           npt.NDArray[np.uint8]
             agent_hp        float
-            boss_hp         float
             agent_ep        float
+            boss_hp         float
         """
         # NOTE: use HSV
         hsv_screen_shot = np.array(Image.fromarray(
