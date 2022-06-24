@@ -169,7 +169,7 @@ class Observer():
         focus_area = np.array(
             focus_area.resize(FOCUS_SIZE), dtype=np.uint8).transpose(2, 0, 1)
         
-        pose_result = inference_bottom_up_pose_model(self.pose_model, focus_area.transpose(1, 2, 0))[0]
+        # pose_result = inference_bottom_up_pose_model(self.pose_model, focus_area.transpose(1, 2, 0))[0]
         # print("pose!", pose_result)
         if ic.enabled:
             vis_pose_result(self.pose_model, focus_area.transpose(1, 2, 0), pose_result, \

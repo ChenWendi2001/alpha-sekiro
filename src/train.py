@@ -82,7 +82,21 @@ class Trainer():
                         action = action_sort[0]
                     else:
                         random_action = True
-                        action = random.randint(0, config.action_dim - 1)
+                        random_value = random.random()
+                        if random_value < 0.3:
+                            action = 0
+                        elif random_value < 0.5:
+                            action = 1
+                        elif random_value < 0.6:
+                            action = 2
+                        elif random_value < 0.7:
+                            action = 3
+                        elif random_value < 0.8:
+                            action = 4
+                        elif random_value < 0.9:
+                            action = 5
+                        else:
+                            action = 6
 
 
                     logging.info("Action: {} [{}]".format(action, "random" if random_action else "learned"))

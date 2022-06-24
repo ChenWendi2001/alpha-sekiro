@@ -36,7 +36,7 @@ class SekiroEnv():
         return list(range(len(AGENT_KEYMAP)))
 
     def __stepReward(self, obs: Tuple) -> float:
-        agent_hp, boss_hp, agent_ep = obs[1:]
+        agent_hp, agent_ep, boss_hp= obs[1:]
 
         if boss_hp < self.last_boss_hp:
             logging.info(f"Hurt Boss! {self.last_boss_hp: 1f} -> {boss_hp: 1f}")
@@ -45,7 +45,7 @@ class SekiroEnv():
             [agent_hp - self.last_agent_hp,
              self.last_boss_hp - boss_hp,
              min(0, self.last_agent_ep - agent_ep)])
-        weights = np.array([100, 10, 10])
+        weights = np.array([10, 100, 5])
         reward = weights.dot(rewards).item()
 
         reward = -50 if agent_hp == 0 else reward
@@ -100,9 +100,10 @@ class SekiroEnv():
 
         if obs[2] == 0:
             logging.info("Boss died! The dqn will be paused!")
-            self.boss_dead = False
+            self.boss_dead = True
         
         if self.boss_dead and obs[2] != 0:
+            self.memory.reviveBoss()
             logging.info("Boss revived! The dqn will be resumed")
             self.last_boss_hp = 1.0
             self.boss_dead = False
