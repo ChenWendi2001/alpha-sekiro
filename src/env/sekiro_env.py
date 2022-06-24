@@ -8,10 +8,11 @@ import win32con
 import win32gui
 
 from .actions import Actor
-from .env_config import AGENT_KEYMAP, GAME_NAME, REVIVE_DELAY
+from .env_config import AGENT_KEYMAP, GAME_NAME, REVIVE_DELAY, AGENT_DEAD_DELAY, ROTATION_DELAY, MAP_CENTER
 from .observation import Observer
 from .utils import timeLog
 from utils import control as Control
+from .memory import Memory
 
 class SekiroEnv():
     def __init__(self) -> None:
@@ -20,19 +21,22 @@ class SekiroEnv():
             logging.critical(f"can't find {GAME_NAME}")
             raise RuntimeError()
 
-        self.actor = Actor(self.handle)
-        self.observer = Observer(self.handle)
+
+        self.memory = Memory()
+        self.actor = Actor(self.handle, self.memory)
+        self.observer = Observer(self.handle, self.memory)
 
         self.last_agent_hp = 0
         self.last_agent_ep = 0
         self.last_boss_hp = 0
-        self.last_boss_ep = 0
+
+        self.boss_dead = False
 
     def actionSpace(self) -> List[int]:
         return list(range(len(AGENT_KEYMAP)))
 
     def __stepReward(self, obs: Tuple) -> float:
-        agent_hp, boss_hp, agent_ep, boss_ep = obs[1:]
+        agent_hp, agent_ep, boss_hp= obs[1:]
 
         if boss_hp < self.last_boss_hp:
             logging.info(f"Hurt Boss! {self.last_boss_hp: 1f} -> {boss_hp: 1f}")
@@ -40,17 +44,15 @@ class SekiroEnv():
         rewards = np.array(
             [agent_hp - self.last_agent_hp,
              self.last_boss_hp - boss_hp,
-             min(0, self.last_agent_ep - agent_ep),
-             max(0, boss_ep - self.last_boss_ep)])
-        weights = np.array([0.5, 5, 0.1, 0.1])
+             min(0, self.last_agent_ep - agent_ep)])
+        weights = np.array([10, 100, 5])
         reward = weights.dot(rewards).item()
 
-        reward = -20 if agent_hp == 0 else reward
+        reward = -50 if agent_hp == 0 else reward
 
         self.last_agent_hp = agent_hp
         self.last_agent_ep = agent_ep
         self.last_boss_hp = boss_hp
-        self.last_boss_ep = boss_ep
 
         logging.info(f"reward: {reward:<.2f}")
         return reward
@@ -61,7 +63,7 @@ class SekiroEnv():
 
     @timeLog
     def obs(self) -> Tuple[Tuple[npt.NDArray[np.uint8],
-                                               float, float, float, float],
+                                               float, float, float],
                                          float, bool, None]:
         """[summary]
 
@@ -70,7 +72,6 @@ class SekiroEnv():
             agent_hp        float
             boss_hp         float
             agent_ep        float
-            boss_ep         float
 
         Returns:
             observation           Tuple
@@ -78,6 +79,10 @@ class SekiroEnv():
             done            bool
             info            None
         """
+        # checking lock
+        lock_state = self.memory.lockBoss()
+        logging.info(f"lock state: {lock_state}")
+
 
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)
@@ -86,23 +91,27 @@ class SekiroEnv():
         if done:
             
             logging.info("player died!")
-            time.sleep(10)
-            self.actor.envAction("focus")
-                
-            self.actor.envAction("switch_full_blood")
-            self.actor.envAction("switch_full_blood")
-            self.actor.envAction("revive", action_delay=REVIVE_DELAY)
+            time.sleep(AGENT_DEAD_DELAY)
+            self.memory.lockBoss()
+            time.sleep(ROTATION_DELAY)
+            self.memory.reviveAgent(need_delay=True)
             # pause game
             self.actor.envAction("pause", action_delay=1)
 
         if obs[2] == 0:
             logging.info("Boss died! The dqn will be paused!")
-            self.actor.envAction("stop_dqn")
+            self.boss_dead = True
+        
+        if self.boss_dead and obs[2] != 0:
+            self.memory.reviveBoss()
+            logging.info("Boss revived! The dqn will be resumed")
+            self.last_boss_hp = 1.0
+            self.boss_dead = False
 
-        return obs, self.__stepReward(obs), done, None
+        return obs, self.__stepReward(obs), done, self.boss_dead
 
     def reset(self) -> Tuple[npt.NDArray[np.uint8],
-                             float, float, float, float]:
+                             float, float, float]:
         # restore window
         win32gui.SendMessage(self.handle, win32con.WM_SYSCOMMAND,
                              win32con.SC_RESTORE, 0)
@@ -111,22 +120,20 @@ class SekiroEnv():
         time.sleep(0.5)
 
         # auto focus
-        self.actor.envAction("switch_visible")
-        self.actor.envAction("switch_invincible")
 
         # resume game 
         self.actor.envAction("resume", action_delay=True)
 
-        self.actor.autoLock(self.observer.shotScreen, self.observer.getRawFocusArea)
+        self.memory.transportAgent(MAP_CENTER)
+        self.actor.autoLock()
 
-        self.actor.envAction("switch_invincible")
-        self.actor.envAction("switch_visible")
+        self.memory.reviveAgent(need_delay=False)
         
 
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)
         self.last_agent_hp, self.last_boss_hp, \
-            self.last_agent_ep, self.last_boss_ep = obs[1:]
+            self.last_agent_ep = obs[1:]
 
         return obs
 

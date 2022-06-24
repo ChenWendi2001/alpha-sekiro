@@ -45,6 +45,7 @@ class Model(nn.Module):
         '''
         x = self.cnn_layers(state_tuple[0])
         
+        logging.debug(x.shape)
         out = self.dense_layers(x)
         logging.debug(out.shape)
         return out

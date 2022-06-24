@@ -41,12 +41,12 @@ class Trainer():
 
     def run(self):
         '''the main training pipeline
-        '''
+        ''' 
+        env = SekiroEnv()
         paused = True
         paused = Control.wait_command(paused)
-        env = SekiroEnv()
-        Control.reset_cheater()
-        Control.infinite_respawn()
+        # Control.reset_cheater()
+        # Control.infinite_respawn()
 
         # start a new game by pressing 'T' on game window
         # get first frame
@@ -56,6 +56,7 @@ class Trainer():
 
         # preset
         done = False
+        emregency = False
         last_time = time.time()
         reward_meter = AverageMeter("reward")
         reward_meter.reset()
@@ -68,35 +69,52 @@ class Trainer():
                 logging.info('curr: {}, loop took {} seconds'.format(self.agent.step, time.time()-last_time))
                 last_time = time.time()
 
-                # Russian roulette
-                
-                if random.random() >= self.epsilon:
-                    random_action = False
-                    pred = self.agent.act(cur_state)
-                    action_sort = np.squeeze(np.argsort(pred)[::-1])
-                    action = action_sort[0]
-                else:
-                    random_action = True
-                    action = random.randint(0, config.action_dim - 1)
+
+                # remove useless frames like boss dying
+                if not emregency:
+                    # Russian roulette
+                    
+                    if random.random() >= self.epsilon:
+                        random_action = False
+                        pred = self.agent.act(cur_state)
+                        action_sort = np.squeeze(np.argsort(pred)[::-1])
+                        action = action_sort[0]
+                    else:
+                        random_action = True
+                        random_value = random.random()
+                        if random_value < 0.3:
+                            action = 0
+                        elif random_value < 0.5:
+                            action = 1
+                        elif random_value < 0.6:
+                            action = 2
+                        elif random_value < 0.7:
+                            action = 3
+                        elif random_value < 0.8:
+                            action = 4
+                        elif random_value < 0.9:
+                            action = 5
+                        else:
+                            action = 6
 
 
-                logging.info("Action: {} [{}]".format(action, "random" if random_action else "learned"))
+                    logging.info("Action: {} [{}]".format(action, "random" if random_action else "learned"))
 
 
-                # update epsilon
-                if self.epsilon > self.epsilon_end:
-                    self.epsilon *= self.epsilon_decay
-                
-                # exec action
-                env.step(action)
-                
-                # traing one step
-                if len(self.agent.replay_buffer) > self.config.batch_size:
-                    loss = self.agent.train_Q_network()
-                    self.trainwriter.add_scalar("loss/train", loss, episode)
+                    # update epsilon
+                    if self.epsilon > self.epsilon_end:
+                        self.epsilon *= self.epsilon_decay
+                    
+                    # exec action
+                    env.step(action)
+                    
+                    # traing one step
+                    if len(self.agent.replay_buffer) > self.config.batch_size:
+                        loss = self.agent.train_Q_network()
+                        self.trainwriter.add_scalar("loss/train", loss, episode)
                 
                 # get next state
-                next_obs, reward, done, _ = env.obs()
+                next_obs, reward, done, emregency = env.obs()
 
                 next_state = State(obs=next_obs)
 
