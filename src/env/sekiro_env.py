@@ -86,7 +86,7 @@ class SekiroEnv():
 
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)
-
+        reward = self.__stepReward(obs)
         done = obs[1] == 0
         if done:
             
@@ -98,17 +98,13 @@ class SekiroEnv():
             # pause game
             self.actor.envAction("pause", action_delay=0.5)
 
-        if obs[3] == 0.:
+        if obs[3] < 0.05:
             logging.info("Boss died! The dqn will be paused!")
-            self.boss_dead = True
-        
-        if self.boss_dead and obs[3] != 0.:
             self.memory.reviveBoss()
             logging.info("Boss revived! The dqn will be resumed")
             self.last_boss_hp = 1.0
-            self.boss_dead = False
 
-        return obs, self.__stepReward(obs), done, self.boss_dead
+        return obs, reward, done, False
 
     def reset(self) -> Tuple[npt.NDArray[np.uint8],
                              float, float, float]:
