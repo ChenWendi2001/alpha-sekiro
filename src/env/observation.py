@@ -15,6 +15,7 @@ from mmpose.apis import (init_pose_model, inference_top_down_pose_model, vis_pos
 from mmdet.apis import init_detector, inference_detector
 
 from .utils import timeLog
+from .memory import Memory
 from .env_config import (AGENT_EP_ANCHOR, AGENT_HP_ANCHOR, BOSS_EP_ANCHOR,
                          BOSS_HP_ANCHOR, FOCUS_ANCHOR, FOCUS_SIZE,
                          SCREEN_ANCHOR, SCREEN_SIZE,
@@ -45,8 +46,9 @@ class Observer():
     yield raw observation
     """
 
-    def __init__(self, handle) -> None:
+    def __init__(self, handle, memory: Memory) -> None:
         self.handle: int = handle
+        self.memory: Memory = memory
 
         anchor = ctypes.wintypes.RECT()
         ctypes.windll.user32.SetProcessDPIAware(2)
@@ -65,6 +67,7 @@ class Observer():
         self.debug_path = os.path.join(os.path.dirname(__file__), "debug")
         if ic.enabled and not os.path.exists(self.debug_path):
             os.mkdir(self.debug_path)
+        '''
         self.agent_hp_full = pickle.load(
             open(os.path.join(self.asset_path, "agent-hp-full.pkl"), "rb"))
         self.boss_hp_full = pickle.load(
@@ -73,6 +76,7 @@ class Observer():
             open(os.path.join(self.asset_path, "agent-ep-full.pkl"), "rb"))
         self.boss_ep_full = pickle.load(
             open(os.path.join(self.asset_path,"boss-ep-full.pkl"), "rb"))
+        '''
 
         # load pose model
         root_path = os.path.join(os.path.dirname(__file__), "..", "..", "pretrained_model")
@@ -151,35 +155,18 @@ class Observer():
         Observation:
             image           npt.NDArray[np.uint8]
             agent_hp        float
-            boss_hp         float
             agent_ep        float
-            boss_ep         float
+            boss_hp         float
         """
         # NOTE: use HSV
         hsv_screen_shot = np.array(Image.fromarray(
             screen_shot.astype(np.uint8).transpose(1, 2, 0)).convert("HSV"),
             dtype=np.int16).transpose(2, 0, 1)
 
-        agent_hp = get_blood(screen_shot.astype(np.uint8).transpose(1, 2, 0), height=SELF_BLOOD_HEIGHT, width=SELF_BLOOD_WIDTH)
-        boss_hp = get_blood(screen_shot.astype(np.uint8).transpose(1, 2, 0), height=BOSS_BLOOD_HEIGHT, width=BOSS_BLOOD_WIDTH)
-        """ 
-        agent_hp = self.__calcProperty(
-            arr=self.__select(hsv_screen_shot, AGENT_HP_ANCHOR),
-            target=self.agent_hp_full, threshold=0.25, prefix="agent-hp")
-        boss_hp = self.__calcProperty(
-            arr=self.__select(hsv_screen_shot, BOSS_HP_ANCHOR),
-            target=self.boss_hp_full, threshold=0.25, prefix="boss-hp")
-        """
+        agent_hp, agent_ep, boss_hp = self.memory.getStatus()
 
         logging.info(f"agent hp: {agent_hp:.1f}, boss hp: {boss_hp:.1f}")
-
-        agent_ep = self.__calcProperty(
-            self.__select(hsv_screen_shot, AGENT_EP_ANCHOR),
-            target=self.agent_ep_full, threshold=0.45, prefix="agent-ep")
-        boss_ep = self.__calcProperty(
-            self.__select(hsv_screen_shot, BOSS_EP_ANCHOR),
-            target=self.boss_ep_full, threshold=0.45, prefix="boss-ep")
-        logging.info(f"agent ep: {agent_ep:.1f}, boss ep: {boss_ep:.1f}")
+        logging.info(f"agent ep: {agent_ep:.1f}")
 
         focus_area = Image.fromarray(self.__select(
             screen_shot, FOCUS_ANCHOR).transpose(1, 2, 0).astype(np.uint8))
@@ -188,21 +175,21 @@ class Observer():
         focus_area = np.array(
             focus_area.resize(FOCUS_SIZE), dtype=np.uint8).transpose(2, 0, 1)
         
-
+        # detection and pose
         input_focus_area = focus_area.transpose(1, 2, 0)[:,:,::-1]
         detect_result = inference_detector(self.detect_model, input_focus_area)
         bbox = detect_result[0][:1]
         bbox = [{'bbox': bb} for bb in bbox]
 
         pose_result, _ = inference_top_down_pose_model(self.pose_model, input_focus_area, bbox, format="xyxy")
+
         # print("pose!", pose_result)
         if ic.enabled:
             vis_pose_result(self.pose_model, input_focus_area, pose_result, \
                  out_file=os.path.join(self.debug_path,f"pose-{self.timestamp}.png"))
 
-        return focus_area, agent_hp, boss_hp, agent_ep, boss_ep
+        return focus_area, agent_hp, agent_ep, boss_hp
 
-    
     def getRawFocusArea(self, screen_shot: npt.NDArray[np.int16]) -> \
             npt.NDArray[np.uint8]:
         

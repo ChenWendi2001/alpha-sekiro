@@ -13,16 +13,14 @@ class State():
             observation(Tuple):
                 focus_area      npt.NDArray[np.uint8], "L"
                 agent_hp        float
-                boss_hp         float
                 agent_ep        float
-                boss_ep         float
+                boss_hp         float
         '''
         
         self.image = obs[0]
-        self.self_blood = obs[1]
-        self.boss_blood = obs[2]
-        self.self_endurance = obs[3]
-        self.boss_endurance = obs[4]
+        self.agent_hp = obs[1]
+        self.agent_ep = obs[3]
+        self.boss_hp = obs[2]
 
 
 class Transition():

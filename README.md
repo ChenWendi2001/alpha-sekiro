@@ -17,6 +17,8 @@ pip install -U openmim
 mim install mmcv-full
 pip install mmpose
 pip install mmdet
+
+pip install pymem
 ```
 
 ### 安装预训练姿态网络

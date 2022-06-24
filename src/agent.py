@@ -8,6 +8,7 @@ import random
 import logging
 import numpy as np
 from typing import List
+import os
 
 
 from transition import Transition, State
@@ -79,7 +80,13 @@ class Agent():
         # Replay Buffer
         self.replay_buffer = ReplayMemory(capacity=config.replay_capacity)
         # Policy Net
-        self.policy_net = Model(config).to(device)
+        if config.load_ckpt: 
+            if os.path.exists(os.path.join(ckpt_dir, config.ckpt_name)):
+                self.policy_net = torch.load(os.path.join(ckpt_dir, config.ckpt_name))
+            else:
+                logging.error(f"No checkpoint's name is {config.ckpt_name}!")
+        else:
+            self.policy_net = Model(config).to(device)
         self.optimizer = optim.Adam(
             self.policy_net.parameters(), lr=config.lr, weight_decay=config.weight_decay
         )
@@ -89,6 +96,10 @@ class Agent():
         self.DQN_criterion = nn.SmoothL1Loss()
         # Target Net
         self.target_net = Model(config).to(device)
+
+
+        ckpt_dir = os.path.join(os.path.dirname(__file__), "..", "..", "checkpoints") 
+
 
         self.update_target_net()
 
@@ -123,7 +134,6 @@ class Agent():
         '''
         return self.DQN_criterion(state_q_values, next_state_q_values)
 
-        return self.DQN_criterion(state_q_values, next_state_q_values)
     
     def act(self, state: State):
         '''act on input state 
