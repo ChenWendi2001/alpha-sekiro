@@ -12,7 +12,7 @@ import os
 
 
 from transition import Transition, State
-from model import Model
+from model import make_model
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -86,7 +86,7 @@ class Agent():
             else:
                 logging.error(f"No checkpoint's name is {config.ckpt_name}!")
         else:
-            self.policy_net = Model(config).to(device)
+            self.policy_net = make_model(config).to(device)
         self.optimizer = optim.Adam(
             self.policy_net.parameters(), lr=config.lr, weight_decay=config.weight_decay
         )
@@ -95,7 +95,7 @@ class Agent():
         )
         self.DQN_criterion = nn.SmoothL1Loss()
         # Target Net
-        self.target_net = Model(config).to(device)
+        self.target_net = make_model(config).to(device)
 
 
         ckpt_dir = os.path.join(os.path.dirname(__file__), "..", "..", "checkpoints") 
@@ -146,6 +146,8 @@ class Agent():
         '''
         state = (
             torch.from_numpy(state.image).float().to(device).unsqueeze(0),
+        torch.from_numpy(state.pose_result['bbox']).to(device).flatten(),
+            torch.from_numpy(state.pose_result['keypoints']).to(device).flatten()
         )
 
         self.policy_net.eval()
@@ -175,6 +177,12 @@ class Agent():
             torch.stack(
                 [torch.from_numpy(state.image) for state in state_batch]
             ).float().to(device),
+            torch.stack(
+                [torch.from_numpy(state.pose_result['bbox']).flatten() for state in state_batch]
+            ).to(device),
+            torch.stack(
+                [torch.from_numpy(state.pose_result['keypoints']).flatten() for state in state_batch]
+            ).to(device)
         )
         logging.debug("state batch shape: {}".format(state_batch[0].shape))
 
@@ -206,6 +214,12 @@ class Agent():
             torch.stack(
                 [ torch.from_numpy(s.image) for s in next_state_batch if s is not None]
             ).float().to(device),
+            torch.stack(
+                [torch.from_numpy(s.pose_result['bbox']).flatten() for s in next_state_batch if s is not None]
+            ).to(device),
+            torch.stack(
+                [torch.from_numpy(s.pose_result['keypoints']).flatten() for s in next_state_batch if s is not None]
+            ).to(device)
         )
 
         next_state_values = torch.zeros(self.batch_size, device=device)

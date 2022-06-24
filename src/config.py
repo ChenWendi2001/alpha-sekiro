@@ -1,5 +1,6 @@
 import argparse
 import os
+from secrets import choice
 
 
 class Config():
@@ -29,6 +30,7 @@ class Config():
         parser.add_argument("--log_dir", type=str, default=os.path.join(cwd, '..', "logs"))
         parser.add_argument("--load_ckpt", action="store_true")
         parser.add_argument("--ckpt_name", type=str)
+        parser.add_argument("--model_type", type=str, default="cnn", choices=["cnn", "pose", "fusion"])
 
         self.initialize = True
         return parser

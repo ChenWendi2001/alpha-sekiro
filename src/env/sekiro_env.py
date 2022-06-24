@@ -36,7 +36,7 @@ class SekiroEnv():
         return list(range(len(AGENT_KEYMAP)))
 
     def __stepReward(self, obs: Tuple) -> float:
-        agent_hp, agent_ep, boss_hp= obs[1:]
+        agent_hp, agent_ep, boss_hp, _ = obs[1:]
 
         if boss_hp < self.last_boss_hp:
             logging.info(f"Hurt Boss! {self.last_boss_hp: 1f} -> {boss_hp: 1f}")
@@ -133,7 +133,7 @@ class SekiroEnv():
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)
         self.last_agent_hp, self.last_boss_hp, \
-            self.last_agent_ep = obs[1:]
+            self.last_agent_ep, _ = obs[1:]
 
         return obs
 
