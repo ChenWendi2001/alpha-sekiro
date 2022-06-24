@@ -166,8 +166,8 @@ class Observer():
 
         agent_hp, agent_ep, boss_hp = self.memory.getStatus()
 
-        logging.info(f"agent hp: {agent_hp:.1f}, boss hp: {boss_hp:.1f}")
-        logging.info(f"agent ep: {agent_ep:.1f}")
+        logging.info(f"agent hp: {agent_hp:.2f}, boss hp: {boss_hp:.2f}")
+        logging.info(f"agent ep: {agent_ep:.2f}")
 
         focus_area = Image.fromarray(self.__select(
             screen_shot, FOCUS_ANCHOR).transpose(1, 2, 0).astype(np.uint8))

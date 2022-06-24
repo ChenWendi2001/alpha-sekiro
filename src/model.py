@@ -37,7 +37,6 @@ class CNNModel(nn.Module):
             nn.ReLU(),
             nn.Dropout(config.dropout),
             nn.Linear(256, config.action_dim),
-            nn.Dropout(config.dropout)
         )
     
     def forward(self,state_tuple):

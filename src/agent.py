@@ -76,17 +76,19 @@ class Agent():
         self.lr_decay_every = config.lr_decay_every
         self.update_target_every = config.update_target_every
 
+        self.ckpt_dir = config.model_dir
 
         # Replay Buffer
         self.replay_buffer = ReplayMemory(capacity=config.replay_capacity)
         # Policy Net
+        
+        self.policy_net = make_model(config).to(device)
         if config.load_ckpt: 
-            if os.path.exists(os.path.join(ckpt_dir, config.ckpt_name)):
-                self.policy_net = torch.load(os.path.join(ckpt_dir, config.ckpt_name))
+            if os.path.exists(os.path.join(self.ckpt_dir, config.ckpt_name)):
+                self.policy_net.load_state_dict(torch.load(os.path.join(self.ckpt_dir, config.ckpt_name)))
             else:
                 logging.error(f"No checkpoint's name is {config.ckpt_name}!")
-        else:
-            self.policy_net = make_model(config).to(device)
+
         self.optimizer = optim.Adam(
             self.policy_net.parameters(), lr=config.lr, weight_decay=config.weight_decay
         )
@@ -121,6 +123,7 @@ class Agent():
         Args:
             transition (Transition):
         '''
+        logging.debug("store new transition, current size: {}".format(len(self.replay_buffer)))
         self.replay_buffer.store(transition)
         
     def DQN_loss(self, state_q_values, next_state_q_values):
@@ -145,8 +148,8 @@ class Agent():
             numpy: predicted prob on input state
         '''
         state = (
-            torch.from_numpy(state.image).float().to(device).unsqueeze(0),
-        torch.from_numpy(state.pose_result['bbox']).to(device).flatten(),
+            torch.from_numpy(state.image).float().to(device).unsqueeze(0) / 255.,
+            torch.from_numpy(state.pose_result['bbox']).to(device).flatten(),
             torch.from_numpy(state.pose_result['keypoints']).to(device).flatten()
         )
 
@@ -175,7 +178,7 @@ class Agent():
         
         state_batch = (
             torch.stack(
-                [torch.from_numpy(state.image) for state in state_batch]
+                [torch.from_numpy(state.image) / 255. for state in state_batch]
             ).float().to(device),
             torch.stack(
                 [torch.from_numpy(state.pose_result['bbox']).flatten() for state in state_batch]
@@ -212,7 +215,7 @@ class Agent():
 
         not_done_next_states = (
             torch.stack(
-                [ torch.from_numpy(s.image) for s in next_state_batch if s is not None]
+                [ torch.from_numpy(s.image) / 255. for s in next_state_batch if s is not None]
             ).float().to(device),
             torch.stack(
                 [torch.from_numpy(s.pose_result['bbox']).flatten() for s in next_state_batch if s is not None]
@@ -231,7 +234,7 @@ class Agent():
 
         self.optimizer.zero_grad()
         loss.backward()
-        # logging.info("loss: {}".format(loss.item()))
+        logging.debug("loss: {}".format(loss.item()))
 
         # gradient clip
         for param in self.policy_net.parameters():

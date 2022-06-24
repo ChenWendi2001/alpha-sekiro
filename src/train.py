@@ -30,13 +30,18 @@ class Trainer():
         self.epsilon_decay = config.epsilon_decay
         self.epsilon_end = config.epsilon_end
 
-        # tensorboard
-        self.trainwriter = SummaryWriter(f'{config.log_dir}/train')
-
         # prepare folder
         for dir in [config.log_dir, config.model_dir]:
             if not os.path.exists(dir):
                 os.mkdir(dir)
+
+        
+        # tensorboard
+        self.trainwriter = SummaryWriter(
+            os.path.join(config.log_dir),
+            "{}-{}".format("test" if self.config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+        )
+
 
 
     def run(self):
@@ -74,9 +79,10 @@ class Trainer():
                 if not emregency:
                     # Russian roulette
                     
-                    if random.random() >= self.epsilon:
+                    if self.config.test_mode or random.random() >= self.epsilon:
                         random_action = False
                         pred = self.agent.act(cur_state)
+                        logging.info(pred)
                         action_sort = np.squeeze(np.argsort(pred)[::-1])
                         action = action_sort[0]
                     else:
@@ -109,7 +115,7 @@ class Trainer():
                     env.step(action)
                     
                     # traing one step
-                    if len(self.agent.replay_buffer) > self.config.batch_size:
+                    if not self.config.test_mode and len(self.agent.replay_buffer) > self.config.batch_size:
                         loss = self.agent.train_Q_network()
                         self.trainwriter.add_scalar("loss/train", loss, episode)
                 
@@ -118,12 +124,14 @@ class Trainer():
 
                 next_state = State(obs=next_obs)
 
-                self.agent.store_transition(Transition(
-                    state=cur_state,
-                    action=action,
-                    next_state=(next_state if not done else None),
-                    reward=reward
-                ))
+
+                if not self.config.test_mode: 
+                    self.agent.store_transition(Transition(
+                        state=cur_state,
+                        action=action,
+                        next_state=(next_state if not done else None),
+                        reward=reward
+                    ))
 
                 cur_state = next_state
 
@@ -161,7 +169,19 @@ if __name__ == "__main__":
     # logging setting
     ic.disable()
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
+    file_handler = logging.FileHandler(os.path.join(config.log_dir, "{}.txt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))))
+    file_handler.setLevel(logging.DEBUG)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter('%(asctime)s-%(levelname)s-%(message)s')
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+    
     trainer = Trainer(config)
     trainer.run()
