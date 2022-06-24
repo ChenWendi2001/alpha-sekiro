@@ -1,6 +1,8 @@
 checkpoints/
 logs/
-pose_model/
+pretrained_model/*.py
+pretrained_model/*.pth
 __pycache__
 tempCodeRunnerFile.py
 src/env/debug/
+pose_model/

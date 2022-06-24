@@ -41,8 +41,7 @@ class Trainer():
 
     def run(self):
         '''the main training pipeline
-        '''
-        
+        ''' 
         env = SekiroEnv()
         paused = True
         paused = Control.wait_command(paused)
