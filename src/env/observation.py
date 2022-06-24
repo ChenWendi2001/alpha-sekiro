@@ -11,7 +11,8 @@ import numpy.typing as npt
 from icecream import ic
 from PIL import Image, ImageGrab
 
-from mmpose.apis import (init_pose_model, inference_bottom_up_pose_model, vis_pose_result)
+from mmpose.apis import (init_pose_model, inference_top_down_pose_model, vis_pose_result)
+from mmdet.apis import init_detector, inference_detector
 
 from .utils import timeLog
 from .memory import Memory
@@ -78,11 +79,16 @@ class Observer():
         '''
 
         # load pose model
-        root_path = os.path.join(os.path.dirname(__file__), "..", "..", "pose_model")
-        config_file = 'associative_embedding_mobilenetv2_coco_512x512.py'
-        checkpoint_file = 'mobilenetv2_coco_512x512-4d96e309_20200816.pth'
-        self.pose_model = init_pose_model(os.path.join(root_path, config_file), \
-            os.path.join(root_path, checkpoint_file), device='cuda:0')
+        root_path = os.path.join(os.path.dirname(__file__), "..", "..", "pretrained_model")
+        detect_config_file = 'configs/faster_rcnn/faster_rcnn_r50_fpn_1x_coco.py'
+        detect_checkpoint_file = 'faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth'
+        self.detect_model = init_detector(os.path.join(root_path, detect_config_file), \
+                os.path.join(root_path, detect_checkpoint_file), device='cuda:0')
+
+        pose_config_file = 'topdown_heatmap_vipnas_mbv3_coco_256x192.py'
+        pose_checkpoint_file = 'vipnas_mbv3_coco_256x192-7018731a_20211122.pth'
+        self.pose_model = init_pose_model(os.path.join(root_path, pose_config_file), \
+            os.path.join(root_path, pose_checkpoint_file), device='cuda:0')
         logging.info("Successfully loaded pose model!")
 
     def __select(self, arr: npt.NDArray, anchor: Tuple) -> npt.NDArray:
@@ -169,10 +175,17 @@ class Observer():
         focus_area = np.array(
             focus_area.resize(FOCUS_SIZE), dtype=np.uint8).transpose(2, 0, 1)
         
-        pose_result = inference_bottom_up_pose_model(self.pose_model, focus_area.transpose(1, 2, 0))[0]
+        # detection and pose
+        input_focus_area = focus_area.transpose(1, 2, 0)[:,:,::-1]
+        detect_result = inference_detector(self.detect_model, input_focus_area)
+        bbox = detect_result[0][:1]
+        bbox = [{'bbox': bb} for bb in bbox]
+
+        pose_result, _ = inference_top_down_pose_model(self.pose_model, input_focus_area, bbox, format="xyxy")
+
         # print("pose!", pose_result)
         if ic.enabled:
-            vis_pose_result(self.pose_model, focus_area.transpose(1, 2, 0), pose_result, \
+            vis_pose_result(self.pose_model, input_focus_area, pose_result, \
                  out_file=os.path.join(self.debug_path,f"pose-{self.timestamp}.png"))
 
         return focus_area, agent_hp, agent_ep, boss_hp
