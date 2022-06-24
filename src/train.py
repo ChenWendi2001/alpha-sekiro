@@ -154,14 +154,16 @@ class Trainer():
             obs = env.reset()
             cur_state = State(obs)
 
+            
+            # tensorboard
+            self.trainwriter.add_scalar("reward_sum/train", reward_meter.sum, episode)
+            self.trainwriter.add_scalar("reward_avg/train", reward_meter.avg, episode)
+
             # preset
             done = False
             last_time = time.time()
             reward_meter.reset()
 
-            # tensorboard
-            self.trainwriter.add_scalar("reward_sum/train", reward_meter.sum, episode)
-            self.trainwriter.add_scalar("reward_avg/train", reward_meter.avg, episode)
 
 if __name__ == "__main__":
     
@@ -183,6 +185,9 @@ if __name__ == "__main__":
     stream_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
+
+    for k in list(vars(config).keys()):
+        logging.info('%s: %s' % (k, vars(config)[k]))
     
     trainer = Trainer(config)
     trainer.run()
