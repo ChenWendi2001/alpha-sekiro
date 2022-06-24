@@ -9,17 +9,24 @@ Learn to play Sekiro with reinforcement learning.
 ```bash
 pip install pywin32==227
 pip install pydirectinput
+
 pip install tensorboard
 pip install tensorboardX
+
 pip install -U openmim
 mim install mmcv-full
 pip install mmpose
+pip install mmdet
 ```
 
 ### 安装预训练姿态网络
-在根目录执行
+- 在根目录执行
 ```bash
-mim download mmpose --config associative_embedding_mobilenetv2_coco_512x512  --dest ./pose_model
+mim download mmpose --config topdown_heatmap_vipnas_mbv3_coco_256x192 --dest ./pretrained_model
+```
+- 下载以下文件到`pretrained_model`
+```bash
+http://download.openmmlab.com/mmdetection/v2.0/faster_rcnn/faster_rcnn_r50_fpn_1x_coco/faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth
 ```
 
 ### 源代码文件说明

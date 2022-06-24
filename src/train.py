@@ -42,9 +42,9 @@ class Trainer():
     def run(self):
         '''the main training pipeline
         '''
+        env = SekiroEnv()
         paused = True
         paused = Control.wait_command(paused)
-        env = SekiroEnv()
         Control.reset_cheater()
         Control.infinite_respawn()
 
