@@ -38,8 +38,9 @@ class Trainer():
         
         # tensorboard
         self.trainwriter = SummaryWriter(
-            os.path.join(config.log_dir),
-            "{}-{}".format("test" if self.config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+            os.path.join(config.log_dir,
+            "{}-{}".format("test" if self.config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            ))
         )
 
 
