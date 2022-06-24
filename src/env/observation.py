@@ -207,8 +207,8 @@ class Observer():
         
         keypoints = np.zeros((17, 4), dtype=np.float32)
         keypoints[:, :2] = pose_result['keypoints'][:, :2]
-        keypoints[:, 3] = pose_result['keypoints'][:, 2] > 0.5
-        keypoints[:, 2] = pose_result['keypoints'][:, 2] <= 0.5
+        keypoints[:, 3] = pose_result['keypoints'][:, 2] > 0.3
+        keypoints[:, 2] = pose_result['keypoints'][:, 2] <= 0.3
 
         keypoints[:, 0] -= np.min( keypoints[:, 0])
         keypoints[:, 1] -= np.min( keypoints[:, 1])
@@ -218,7 +218,7 @@ class Observer():
             'keypoints': keypoints
         }
 
-        print(pose_result)
+        logging.debug(pose_result)
 
         return focus_area, agent_hp, agent_ep, boss_hp, pose_result
 
