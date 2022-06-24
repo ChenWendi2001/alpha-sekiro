@@ -45,7 +45,7 @@ class SekiroEnv():
             [agent_hp - self.last_agent_hp,
              self.last_boss_hp - boss_hp,
              min(0, self.last_agent_ep - agent_ep)])
-        weights = np.array([10, 100, 5])
+        weights = np.array([100, 1000, 50])
         reward = weights.dot(rewards).item()
 
         reward = -50 if agent_hp == 0 else reward
@@ -70,8 +70,8 @@ class SekiroEnv():
         observation:
             focus_area      npt.NDArray[np.uint8], "L"
             agent_hp        float
-            boss_hp         float
             agent_ep        float
+            boss_hp         float
 
         Returns:
             observation           Tuple
@@ -98,11 +98,11 @@ class SekiroEnv():
             # pause game
             self.actor.envAction("pause", action_delay=0.5)
 
-        if obs[2] == 0:
+        if obs[3] == 0.:
             logging.info("Boss died! The dqn will be paused!")
             self.boss_dead = True
         
-        if self.boss_dead and obs[2] != 0:
+        if self.boss_dead and obs[3] != 0.:
             self.memory.reviveBoss()
             logging.info("Boss revived! The dqn will be resumed")
             self.last_boss_hp = 1.0

@@ -147,7 +147,7 @@ class Agent():
             numpy: predicted prob on input state
         '''
         state = (
-            torch.from_numpy(state.image).float().to(device).unsqueeze(0),
+            torch.from_numpy(state.image).float().to(device).unsqueeze(0) / 255.,
         )
 
         self.policy_net.eval()
@@ -175,7 +175,7 @@ class Agent():
         
         state_batch = (
             torch.stack(
-                [torch.from_numpy(state.image) for state in state_batch]
+                [torch.from_numpy(state.image) / 255. for state in state_batch]
             ).float().to(device),
         )
         logging.debug("state batch shape: {}".format(state_batch[0].shape))
@@ -206,7 +206,7 @@ class Agent():
 
         not_done_next_states = (
             torch.stack(
-                [ torch.from_numpy(s.image) for s in next_state_batch if s is not None]
+                [ torch.from_numpy(s.image) / 255. for s in next_state_batch if s is not None]
             ).float().to(device),
         )
 

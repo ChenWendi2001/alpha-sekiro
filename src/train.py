@@ -82,6 +82,7 @@ class Trainer():
                     if self.config.test_mode or random.random() >= self.epsilon:
                         random_action = False
                         pred = self.agent.act(cur_state)
+                        logging.info(pred)
                         action_sort = np.squeeze(np.argsort(pred)[::-1])
                         action = action_sort[0]
                     else:
