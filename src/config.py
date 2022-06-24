@@ -27,7 +27,7 @@ class Config():
         parser.add_argument("--epsilon_end", type=float, default=0.05)
         parser.add_argument("--save_model_every", type=int, default=20)
         parser.add_argument("--log_dir", type=str, default=os.path.join(cwd, '..', "logs"))
-        parser.add_argument("--load_ckpt", actions="store_true")
+        parser.add_argument("--load_ckpt", action="store_true")
         parser.add_argument("--ckpt_name", type=str)
 
         self.initialize = True
