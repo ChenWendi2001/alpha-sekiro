@@ -96,7 +96,7 @@ class SekiroEnv():
             time.sleep(ROTATION_DELAY)
             self.memory.reviveAgent(need_delay=True)
             # pause game
-            self.actor.envAction("pause", action_delay=1)
+            self.actor.envAction("pause", action_delay=0.5)
 
         if obs[2] == 0:
             logging.info("Boss died! The dqn will be paused!")
@@ -122,7 +122,7 @@ class SekiroEnv():
         # auto focus
 
         # resume game 
-        self.actor.envAction("resume", action_delay=True)
+        self.actor.envAction("resume", action_delay=0.5)
 
         self.memory.transportAgent(MAP_CENTER)
         self.actor.autoLock()

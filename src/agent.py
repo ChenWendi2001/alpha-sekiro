@@ -76,17 +76,18 @@ class Agent():
         self.lr_decay_every = config.lr_decay_every
         self.update_target_every = config.update_target_every
 
+        self.ckpt_dir = config.model_dir
 
         # Replay Buffer
         self.replay_buffer = ReplayMemory(capacity=config.replay_capacity)
         # Policy Net
+        
+        self.policy_net = Model(config).to(device)
         if config.load_ckpt: 
-            if os.path.exists(os.path.join(ckpt_dir, config.ckpt_name)):
-                self.policy_net = torch.load(os.path.join(ckpt_dir, config.ckpt_name))
+            if os.path.exists(os.path.join(self.ckpt_dir, config.ckpt_name)):
+                self.policy_net.load_state_dict(torch.load(os.path.join(self.ckpt_dir, config.ckpt_name)))
             else:
                 logging.error(f"No checkpoint's name is {config.ckpt_name}!")
-        else:
-            self.policy_net = Model(config).to(device)
         self.optimizer = optim.Adam(
             self.policy_net.parameters(), lr=config.lr, weight_decay=config.weight_decay
         )
@@ -121,6 +122,7 @@ class Agent():
         Args:
             transition (Transition):
         '''
+        logging.debug("store new transition, current size: {}".format(len(self.replay_buffer)))
         self.replay_buffer.store(transition)
         
     def DQN_loss(self, state_q_values, next_state_q_values):
@@ -217,7 +219,7 @@ class Agent():
 
         self.optimizer.zero_grad()
         loss.backward()
-        # logging.info("loss: {}".format(loss.item()))
+        logging.debug("loss: {}".format(loss.item()))
 
         # gradient clip
         for param in self.policy_net.parameters():
