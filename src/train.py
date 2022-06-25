@@ -24,7 +24,7 @@ class Trainer():
     def __init__(self, config) -> None:
 
         if config.model_name == "":
-            config.model_name = "{}-{}".format("test" if self.config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+            config.model_name = "{}-{}".format("test" if config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
         self.model_name = config.model_name
         self.ckpt_dir = os.path.join(config.model_dir, self.model_name)
 
