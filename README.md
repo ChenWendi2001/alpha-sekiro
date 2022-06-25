@@ -7,6 +7,8 @@ Learn to play Sekiro with reinforcement learning.
 ### Requirements
 安装时请注意版本。
 ```bash
+conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+
 pip install pywin32==227
 pip install pydirectinput
 
@@ -30,8 +32,3 @@ mim download mmpose --config topdown_heatmap_vipnas_mbv3_coco_256x192 --dest ./p
 ```bash
 http://download.openmmlab.com/mmdetection/v2.0/faster_rcnn/faster_rcnn_r50_fpn_1x_coco/faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth
 ```
-
-### 源代码文件说明
-#### src/utils
-- 该文件夹包含模拟键盘与鼠标的输入的代码
-- 该文件夹包含读取游戏界面中血量和耐力值的代码
