@@ -22,11 +22,16 @@ from env import SekiroEnv
 
 class Trainer():
     def __init__(self, config) -> None:
+
+        if config.model_name == "":
+            config.model_name = "{}-{}".format("test" if self.config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+        self.model_name = config.model_name
+        self.ckpt_dir = os.path.join(config.model_dir, self.model_name)
+
+    
         self.agent = Agent(config)
         self.config = config
         
-        self.model_name = "{}-{}".format("test" if self.config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
-        self.ckpt_dir = os.path.join(config.model_dir, self.model_name)
         
         # epsilon
         self.epsilon = config.epsilon_start
