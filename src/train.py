@@ -49,6 +49,8 @@ class Trainer():
     def run(self):
         '''the main training pipeline
         ''' 
+
+        best_total_reward = 0
         env = SekiroEnv()
         paused = True
         paused = Control.wait_command(paused)
@@ -78,7 +80,9 @@ class Trainer():
 
 
                 # remove useless frames like boss dying
-                if not emregency:
+                if emregency:
+                    logging.critical("emergency happening!")
+                else:
                     # Russian roulette
                     
                     if self.config.test_mode or random.random() >= self.epsilon:
@@ -147,14 +151,17 @@ class Trainer():
                     break
 
             
-            if (episode + 1) % self.config.save_model_every == 0:
+            if (episode + 1) % self.config.save_model_every == 0 or reward_meter.sum > best_total_reward:
+             
+                best_total_reward = max(reward_meter.sum, best_total_reward)
                 if not os.path.exists(config.model_dir):
                     os.mkdir(config.model_dir)
-                torch.save(self.agent.policy_net.state_dict(), os.path.join(config.model_dir, "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))))
-
-            obs = env.reset()
-            cur_state = State(obs)
-
+                torch.save(self.agent.policy_net.state_dict(), 
+                    os.path.join(config.model_dir, "{}-{}.pt".format(
+                        datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"),
+                        reward_meter.sum
+                    ))
+                )
 
             # tensorboard
             self.trainwriter.add_scalar("reward_sum/train", reward_meter.sum, episode)
@@ -164,6 +171,12 @@ class Trainer():
             done = False
             last_time = time.time()
             reward_meter.reset()
+
+            obs = env.reset()
+            cur_state = State(obs)
+
+
+
 
 
 if __name__ == "__main__":
