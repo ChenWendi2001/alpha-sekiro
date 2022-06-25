@@ -148,7 +148,7 @@ class Agent():
             numpy: predicted prob on input state
         '''
         state = (
-            torch.from_numpy(state.image).float().to(device).unsqueeze(0) / 255.,
+            torch.from_numpy(state.image).float().to(device).unsqueeze(0) ,
             torch.from_numpy(state.pose_result['bbox']).to(device).flatten(),
             torch.from_numpy(state.pose_result['keypoints']).to(device).flatten()
         )
@@ -178,7 +178,7 @@ class Agent():
         
         state_batch = (
             torch.stack(
-                [torch.from_numpy(state.image) / 255. for state in state_batch]
+                [torch.from_numpy(state.image)  for state in state_batch]
             ).float().to(device),
             torch.stack(
                 [torch.from_numpy(state.pose_result['bbox']).flatten() for state in state_batch]
@@ -215,7 +215,7 @@ class Agent():
 
         not_done_next_states = (
             torch.stack(
-                [ torch.from_numpy(s.image) / 255. for s in next_state_batch if s is not None]
+                [ torch.from_numpy(s.image)  for s in next_state_batch if s is not None]
             ).float().to(device),
             torch.stack(
                 [torch.from_numpy(s.pose_result['bbox']).flatten() for s in next_state_batch if s is not None]

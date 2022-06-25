@@ -224,6 +224,14 @@ class Observer():
 
         logging.debug(pose_result)
 
+        # imagenet normalization
+        focus_area = focus_area[::-1,:,:]
+        for i, (mean, std) in enumerate(zip([0.485, 0.456, 0.406], 
+                                            [0.229, 0.224, 0.225])):
+            mu = np.mean(focus_area[i])
+            sigma = np.std(focus_area[i])
+            focus_area[i] = (focus_area[i] - mu) / sigma * std + mean
+
         return focus_area, agent_hp, agent_ep, boss_hp, pose_result
 
     def getRawFocusArea(self, screen_shot: npt.NDArray[np.int16]) -> \
