@@ -11,6 +11,8 @@ def make_model(config):
         return PoseModel(config)
     elif config.model_type == "fusion":
         return FusionModel(config)
+    elif config.model_type == "deep":
+        return DeepCNN(config)
 
 class CNNModel(nn.Module):
     def __init__(self, config):
@@ -136,6 +138,47 @@ class FusionModel(nn.Module):
         x = self.projection(x)
         
         x = torch.cat([self.cnn_layers(state_tuple[0]).squeeze(), x], dim=-1)
+        
+        logging.debug(x.shape)
+        out = self.dense_layers(x)
+        logging.debug(out.shape)
+        return out
+
+class DeepCNN(nn.Module):
+    def __init__(self, config):
+        '''Init the Model
+
+        Args:
+            config (Config): config file parsed from command args
+
+        '''
+        super(FusionModel, self).__init__()
+        logging.info("Initing Deep CNN Model")
+
+        self.cnn_layers = resnet18(pretrained=True)
+        self.cnn_layers.fc = nn.Linear(512, 256)
+
+        self.dense_layers = nn.Sequential(
+            nn.Linear(256, 256),
+            nn.ReLU(),
+            nn.Dropout(config.dropout),
+            nn.Linear(256, 128), 
+            nn.ReLU(),
+            nn.Dropout(config.dropout),
+            nn.Linear(128, config.action_dim),
+        )
+    
+    def forward(self,state_tuple):
+        '''forward through the model
+
+        Args:
+            state_tuple ((tensor...)): _description_
+
+        Returns:
+            tensor: q values for input states
+        '''
+        
+        x = self.cnn_layers(state_tuple[0]).squeeze()
         
         logging.debug(x.shape)
         out = self.dense_layers(x)
