@@ -29,6 +29,7 @@ class Config():
         parser.add_argument("--save_model_every", type=int, default=20)
         parser.add_argument("--log_dir", type=str, default=os.path.join(cwd, '..', "logs"))
         parser.add_argument("--load_ckpt", action="store_true")
+        parser.add_argument("--model_name", type=str)
         parser.add_argument("--ckpt_name", type=str)
         parser.add_argument("--test_mode", action="store_true")
         parser.add_argument("--model_type", type=str, default="cnn", choices=["cnn", "pose", "fusion"])

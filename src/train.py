@@ -25,13 +25,17 @@ class Trainer():
         self.agent = Agent(config)
         self.config = config
         
+        self.model_name = "{}-{}".format("test" if self.config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+        self.ckpt_dir = os.path.join(config.model_dir, self.model_name)
+        
         # epsilon
         self.epsilon = config.epsilon_start
         self.epsilon_decay = config.epsilon_decay
         self.epsilon_end = config.epsilon_end
+        
 
         # prepare folder
-        for dir in [config.log_dir, config.model_dir]:
+        for dir in [config.log_dir, self.ckpt_dir]:
             if not os.path.exists(dir):
                 os.mkdir(dir)
 
@@ -39,8 +43,8 @@ class Trainer():
         # tensorboard
         self.trainwriter = SummaryWriter(
             os.path.join(config.log_dir,
-            "{}-{}".format("test" if self.config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            )),
+            self.model_name
+            ),
             flush_secs=60
         )
 
@@ -154,10 +158,8 @@ class Trainer():
             if (episode + 1) % self.config.save_model_every == 0 or reward_meter.sum > best_total_reward:
              
                 best_total_reward = max(reward_meter.sum, best_total_reward)
-                if not os.path.exists(config.model_dir):
-                    os.mkdir(config.model_dir)
                 torch.save(self.agent.policy_net.state_dict(), 
-                    os.path.join(config.model_dir, "{}-{}.pt".format(
+                    os.path.join(self.ckpt_dir, "{}-{}.pt".format(
                         datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"),
                         reward_meter.sum
                     ))

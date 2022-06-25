@@ -76,7 +76,7 @@ class Agent():
         self.lr_decay_every = config.lr_decay_every
         self.update_target_every = config.update_target_every
 
-        self.ckpt_dir = config.model_dir
+        self.ckpt_dir = os.path.join(config.model_dir, config.model_name)
 
         # Replay Buffer
         self.replay_buffer = ReplayMemory(capacity=config.replay_capacity)
