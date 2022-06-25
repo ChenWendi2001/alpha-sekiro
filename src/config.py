@@ -32,7 +32,7 @@ class Config():
         parser.add_argument("--model_name", type=str, default="")
         parser.add_argument("--ckpt_name", type=str)
         parser.add_argument("--test_mode", action="store_true")
-        parser.add_argument("--model_type", type=str, default="cnn", choices=["cnn", "pose", "fusion"])
+        parser.add_argument("--model_type", type=str, default="cnn", choices=["cnn", "pose", "fusion", "deep"])
 
         self.initialize = True
         return parser

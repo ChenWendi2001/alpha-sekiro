@@ -225,7 +225,7 @@ class Observer():
         logging.debug(pose_result)
 
         # imagenet normalization
-        focus_area = focus_area[::-1,:,:]
+        focus_area = focus_area[::-1,:,:].copy()
         for i, (mean, std) in enumerate(zip([0.485, 0.456, 0.406], 
                                             [0.229, 0.224, 0.225])):
             mu = np.mean(focus_area[i])

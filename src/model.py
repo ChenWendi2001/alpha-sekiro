@@ -152,7 +152,7 @@ class DeepCNN(nn.Module):
             config (Config): config file parsed from command args
 
         '''
-        super(FusionModel, self).__init__()
+        super(DeepCNN, self).__init__()
         logging.info("Initing Deep CNN Model")
 
         self.cnn_layers = resnet18(pretrained=True)
