@@ -78,9 +78,13 @@ class Trainer():
         last_time = time.time()
         reward_meter = AverageMeter("reward")
         reward_meter.reset()
+        damage_meter = AverageMeter("damage to boss")
+        def stat_closure(damage):
+            damage_meter.update(damage)
         
         for episode in trange(self.config.episodes):
-            
+            start_time = time.time()
+            start_step = self.agent.step
             while True:
 
                 # calculate latency
@@ -134,8 +138,9 @@ class Trainer():
                         loss = self.agent.train_Q_network()
                         self.trainwriter.add_scalar("loss/train", loss, self.agent.step)
                 
+
                 # get next state
-                next_obs, reward, done, emregency = env.obs()
+                next_obs, reward, done, emregency = env.obs(stat_closure)
 
                 next_state = State(obs=next_obs)
 
@@ -160,7 +165,7 @@ class Trainer():
                     break
 
             
-            if (episode + 1) % self.config.save_model_every == 0 or reward_meter.sum > best_total_reward:
+            if not self.config.test_mode and ((episode + 1) % self.config.save_model_every == 0 or reward_meter.sum > best_total_reward):
              
                 best_total_reward = max(reward_meter.sum, best_total_reward)
                 torch.save(self.agent.policy_net.state_dict(), 
@@ -171,6 +176,11 @@ class Trainer():
                 )
 
             # tensorboard
+            end_time = time.time()
+            end_step = self.agent.step
+            self.trainwriter.add_scalar("step_taken/train", end_step - start_step, episode)
+            self.trainwriter.add_scalar("time_used/train", end_time - start_time, episode)
+            self.trainwriter.add_scalar("damage_sum/train", damage_meter.sum, episode)
             self.trainwriter.add_scalar("reward_sum/train", reward_meter.sum, episode)
             self.trainwriter.add_scalar("reward_avg/train", reward_meter.avg, episode)
 
@@ -178,6 +188,7 @@ class Trainer():
             done = False
             last_time = time.time()
             reward_meter.reset()
+            damage_meter.reset()
 
             obs = env.reset()
             cur_state = State(obs)

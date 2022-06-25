@@ -35,11 +35,12 @@ class SekiroEnv():
     def actionSpace(self) -> List[int]:
         return list(range(len(AGENT_KEYMAP)))
 
-    def __stepReward(self, obs: Tuple) -> float:
+    def __stepReward(self, obs: Tuple, stat_closure) -> float:
         agent_hp, agent_ep, boss_hp, _ = obs[1:]
 
         if boss_hp < self.last_boss_hp:
             logging.info(f"Hurt Boss! {self.last_boss_hp: 1f} -> {boss_hp: 1f}")
+            stat_closure(self.last_boss_hp - boss_hp)
         # TODO: refine reward
         rewards = np.array(
             [agent_hp - self.last_agent_hp,
@@ -62,7 +63,7 @@ class SekiroEnv():
         self.actor.agentAction(action_key)
 
     @timeLog
-    def obs(self) -> Tuple[Tuple[npt.NDArray[np.uint8],
+    def obs(self, stat_closure) -> Tuple[Tuple[npt.NDArray[np.uint8],
                                                float, float, float],
                                          float, bool, None]:
         """[summary]
@@ -86,7 +87,7 @@ class SekiroEnv():
 
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)
-        reward = self.__stepReward(obs)
+        reward = self.__stepReward(obs, stat_closure)
         done = obs[1] == 0
         if done:
             
