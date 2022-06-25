@@ -40,7 +40,8 @@ class Trainer():
         self.trainwriter = SummaryWriter(
             os.path.join(config.log_dir,
             "{}-{}".format("test" if self.config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-            ))
+            )),
+            flush_secs=60
         )
 
 
@@ -118,7 +119,7 @@ class Trainer():
                     # traing one step
                     if not self.config.test_mode and len(self.agent.replay_buffer) > self.config.batch_size:
                         loss = self.agent.train_Q_network()
-                        self.trainwriter.add_scalar("loss/train", loss, episode)
+                        self.trainwriter.add_scalar("loss/train", loss, self.agent.step)
                 
                 # get next state
                 next_obs, reward, done, emregency = env.obs()
@@ -154,7 +155,7 @@ class Trainer():
             obs = env.reset()
             cur_state = State(obs)
 
-            
+
             # tensorboard
             self.trainwriter.add_scalar("reward_sum/train", reward_meter.sum, episode)
             self.trainwriter.add_scalar("reward_avg/train", reward_meter.avg, episode)

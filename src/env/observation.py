@@ -50,6 +50,7 @@ class Observer():
     def __init__(self, handle, memory: Memory) -> None:
         self.handle: int = handle
         self.memory: Memory = memory
+        self.emergency_count = 0
 
         anchor = ctypes.wintypes.RECT()
         ctypes.windll.user32.SetProcessDPIAware(2)
@@ -190,10 +191,13 @@ class Observer():
                  out_file=os.path.join(self.debug_path,f"pose-{self.timestamp}.png"))
 
         if len(pose_result) == 0:
+            self.emergency_count += 1
             pose_result = [{
                 'bbox': np.ones((5), dtype=np.float32) * -1,
                 'keypoints': np.ones((17, 3)) * -1
             }]
+        else:
+            self.emergency_count = 0
 
         # add one hot
         pose_result = pose_result[0]

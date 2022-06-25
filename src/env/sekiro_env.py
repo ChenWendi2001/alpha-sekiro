@@ -104,7 +104,15 @@ class SekiroEnv():
             logging.info("Boss revived! The dqn will be resumed")
             self.last_boss_hp = 1.0
 
-        return obs, reward, done, False
+        emergency = False
+        if self.observer.emergency_count >= 10:
+            logging.critical("Emergency happened! Continuous failure to identify the target")
+            logging.info("try to resume")
+            self.actor.envAction("resume", action_delay=0.5)
+            emergency = True
+
+
+        return obs, reward, done, emergency
 
     def reset(self) -> Tuple[npt.NDArray[np.uint8],
                              float, float, float]:
