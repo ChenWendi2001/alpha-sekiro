@@ -2,12 +2,15 @@ import torch
 import torch.nn as nn
 import logging
 
+from torchvision.models import resnet18
 
 def make_model(config):
     if config.model_type == "cnn":
         return CNNModel(config)
     elif config.model_type == "pose":
         return PoseModel(config)
+    elif config.model_type == "fusion":
+        return FusionModel(config)
 
 class CNNModel(nn.Module):
     def __init__(self, config):
@@ -88,6 +91,51 @@ class PoseModel(nn.Module):
             tensor: q values for input states
         '''
         x = torch.cat([state_tuple[1], state_tuple[2]], dim=-1)
+        
+        logging.debug(x.shape)
+        out = self.dense_layers(x)
+        logging.debug(out.shape)
+        return out
+
+class FusionModel(nn.Module):
+    def __init__(self, config):
+        '''Init the Model
+
+        Args:
+            config (Config): config file parsed from command args
+
+        '''
+        super(FusionModel, self).__init__()
+        logging.info("Initing Fusion Model")
+
+        self.cnn_layers = resnet18(pretrained=True)
+        self.cnn_layers.fc = nn.Linear(512, 256)
+        self.projection =  nn.Linear(74, 256)
+
+        self.dense_layers = nn.Sequential(
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Dropout(config.dropout),
+            nn.Linear(256, 128), 
+            nn.ReLU(),
+            nn.Dropout(config.dropout),
+            nn.Linear(128, config.action_dim),
+        )
+    
+    def forward(self,state_tuple):
+        '''forward through the model
+
+        Args:
+            state_tuple ((tensor...)): _description_
+
+        Returns:
+            tensor: q values for input states
+        '''
+
+        x = torch.cat([state_tuple[1], state_tuple[2]], dim=-1)
+        x = self.projection(x)
+        
+        x = torch.cat([self.cnn_layers(state_tuple[0]).squeeze(), x], dim=-1)
         
         logging.debug(x.shape)
         out = self.dense_layers(x)
