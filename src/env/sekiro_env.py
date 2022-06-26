@@ -46,10 +46,10 @@ class SekiroEnv():
             [agent_hp - self.last_agent_hp,
              self.last_boss_hp - boss_hp,
              min(0, self.last_agent_ep - agent_ep)])
-        weights = np.array([200, 500, 50])
+        weights = np.array([200, 1000, 50])
         reward = weights.dot(rewards).item()
 
-        reward = -50 if agent_hp == 0 else reward
+        reward = -200 * self.last_agent_hp if agent_hp == 0 else reward
 
         self.last_agent_hp = agent_hp
         self.last_agent_ep = agent_ep
@@ -137,8 +137,8 @@ class SekiroEnv():
 
         screen_shot = self.observer.shotScreen()
         obs = self.observer.getObs(screen_shot)
-        self.last_agent_hp, self.last_boss_hp, \
-            self.last_agent_ep, _ = obs[1:]
+        self.last_agent_hp,  \
+            self.last_agent_ep, self.last_boss_hp, _ = obs[1:]
 
         return obs
 
