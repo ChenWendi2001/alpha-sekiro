@@ -77,8 +77,6 @@ class Actor():
             return circles is not None
 
         locked = self.memory.lockBoss()
-        adjustVertical()
-        locked = self.memory.lockBoss()
         while not locked:
             i = 0
             while not locked:

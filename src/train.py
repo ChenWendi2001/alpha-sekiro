@@ -134,7 +134,7 @@ class Trainer():
                     env.step(action)
                     
                     # traing one step
-                    if not self.config.test_mode and len(self.agent.replay_buffer) > self.config.batch_size:
+                    if not self.config.test_mode and len(self.agent.replay_buffer) > self.config.start_train_after:
                         loss = self.agent.train_Q_network()
                         self.trainwriter.add_scalar("loss/train", loss, self.agent.step)
                 

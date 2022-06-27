@@ -21,6 +21,7 @@ class Config():
         parser.add_argument("--update_target_every", type=int, default=50)
         parser.add_argument("--model_dir", type=str, default=os.path.join(cwd, '..', "checkpoints"))
         parser.add_argument("--batch_size", type=int, default=64)
+        parser.add_argument("--start_train_after", type=int, default=64)
         parser.add_argument("--dropout", type=float, default=0.2)
         parser.add_argument("--episodes", type=int, default=100)
         parser.add_argument("--epsilon_start", type=float, default=1)

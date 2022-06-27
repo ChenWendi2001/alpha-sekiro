@@ -94,7 +94,6 @@ class SekiroEnv():
             logging.info("player died!")
             time.sleep(AGENT_DEAD_DELAY)
             self.memory.lockBoss()
-            time.sleep(ROTATION_DELAY)
             self.memory.reviveAgent(need_delay=True)
             # pause game
             self.actor.envAction("pause", action_delay=0.5)
@@ -133,6 +132,7 @@ class SekiroEnv():
         self.actor.autoLock()
 
         self.memory.reviveAgent(need_delay=False)
+        self.memory.reviveBoss()
         
 
         screen_shot = self.observer.shotScreen()
