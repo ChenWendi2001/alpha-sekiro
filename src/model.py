@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import logging
 
-from torchvision.models import resnet18
+from resnet import resnet18, halfresnet18
 
 def make_model(config):
     if config.model_type == "cnn":
@@ -13,6 +13,8 @@ def make_model(config):
         return FusionModel(config)
     elif config.model_type == "deep":
         return DeepCNN(config)
+    elif config.model_type == "half":
+        return HalfCNN(config)
 
 class CNNModel(nn.Module):
     def __init__(self, config):
@@ -179,6 +181,48 @@ class DeepCNN(nn.Module):
         '''
         
         x = self.cnn_layers(state_tuple[0]).squeeze()
+        
+        logging.debug(x.shape)
+        out = self.dense_layers(x)
+        logging.debug(out.shape)
+        return out
+
+
+class HalfCNN(nn.Module):
+    def __init__(self, config):
+        '''Init the Model
+
+        Args:
+            config (Config): config file parsed from command args
+
+        '''
+        super(HalfCNN, self).__init__()
+        logging.info("Initing Half CNN Model")
+
+        self.cnn_layers = halfresnet18(pretrained=True)
+
+        self.dense_layers = nn.Sequential(\
+            nn.Flatten(start_dim=1),
+            nn.Linear(128*28*28, 256),
+            nn.ReLU(),
+            nn.Dropout(config.dropout),
+            nn.Linear(256, 128), 
+            nn.ReLU(),
+            nn.Dropout(config.dropout),
+            nn.Linear(128, config.action_dim),
+        )
+    
+    def forward(self,state_tuple):
+        '''forward through the model
+
+        Args:
+            state_tuple ((tensor...)): _description_
+
+        Returns:
+            tensor: q values for input states
+        '''
+        
+        x = self.cnn_layers(state_tuple[0])
         
         logging.debug(x.shape)
         out = self.dense_layers(x)

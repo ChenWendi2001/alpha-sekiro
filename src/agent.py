@@ -238,7 +238,8 @@ class Agent():
 
         # gradient clip
         for param in self.policy_net.parameters():
-            param.grad.data.clamp_(-1, 1)
+            if param.grad is not None:
+                param.grad.data.clamp_(-1, 1)
         
         self.optimizer.step()
 
