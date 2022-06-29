@@ -83,7 +83,7 @@ class Observer():
 
         if self.config.use_pose_detection:
             # load pose model
-            root_path = os.path.join(os.path.dirname(__file__), "..", "..", "pretrained_model")
+            root_path = os.path.join(os.path.dirname(__file__), "..", "..", "pose_model")
             detect_config_file = 'configs/faster_rcnn/faster_rcnn_r50_fpn_1x_coco.py'
             detect_checkpoint_file = 'faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth'
             self.detect_model = init_detector(os.path.join(root_path, detect_config_file), \

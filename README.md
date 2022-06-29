@@ -23,12 +23,12 @@ pip install mmdet
 pip install pymem
 ```
 
-### 安装预训练姿态网络
+### 安装姿态识别网络(Optional)
 - 在根目录执行
 ```bash
-mim download mmpose --config topdown_heatmap_vipnas_mbv3_coco_256x192 --dest ./pretrained_model
+mim download mmpose --config topdown_heatmap_vipnas_mbv3_coco_256x192 --dest ./pose_model
 ```
-- 下载以下文件到`pretrained_model`
+- 下载以下文件到`pose_model`
 ```bash
 http://download.openmmlab.com/mmdetection/v2.0/faster_rcnn/faster_rcnn_r50_fpn_1x_coco/faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth
 ```

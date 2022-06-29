@@ -9,21 +9,6 @@ import pydirectinput
 from functools import partial
 
 
-attack = partial(pydirectinput.press, 'j')
-defense = partial(pydirectinput.press, 'k')
-dodge = partial(pydirectinput.press, 'shift')
-jump = partial(pydirectinput.press, 'space')
-lock = partial(pydirectinput.press, 'l')
-click = partial(pydirectinput.press, 'j')
-
-def take_action(action):
-    '''press corresponding keys
-
-    Args:
-        action (int): action index
-
-    '''
-    [attack, defense, dodge, jump][action]()
 
 keyList = ["\b"]
 for char in "ABCDEFGHIJKLMNOPQRSTUVWXYZ 123456789,.'£$/\\":
@@ -75,15 +60,6 @@ def wait_command(paused):
                     time.sleep(1)
     return paused
 
-# cheat interact
-def reset_cheater():
-    pydirectinput.press("home")
-
-def infinite_respawn():
-    pydirectinput.keyDown("ctrl")
-    pydirectinput.press("6")
-    pydirectinput.press("7")
-    pydirectinput.keyUp("ctrl")
 
 if __name__ == "__main__":
     for i in range(10):

@@ -16,7 +16,7 @@ from agent import Agent
 from config import Config
 from utils import screenshot as Screenshot, control as Control
 from utils.average_meter import AverageMeter
-import reward as Reward
+
 from transition import State, Transition
 from env import SekiroEnv
 
