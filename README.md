@@ -57,7 +57,7 @@ http://download.openmmlab.com/mmdetection/v2.0/faster_rcnn/faster_rcnn_r50_fpn_1
 
 - 选择关卡："再战稀世强者"，”苇名弦一郎“，等待关卡载入结束后，按”esc“进行暂停
 
-- 进入`src`文件夹，执行以下命令，若使用姿态模型，还需增加`--use_pose_detection`参数。
+- **使用管理员权限的powershell或者终端**进入`src`文件夹，执行以下命令，若使用姿态模型，还需增加`--use_pose_detection`参数。
   ```bash
   python train.py --model_type cnn
   ```
