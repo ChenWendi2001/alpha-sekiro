@@ -60,7 +60,7 @@ class Trainer():
         ''' 
 
         best_total_reward = 0
-        env = SekiroEnv()
+        env = SekiroEnv(self.config)
         paused = True
         paused = Control.wait_command(paused)
 
