@@ -81,18 +81,19 @@ class Observer():
             open(os.path.join(self.asset_path,"boss-ep-full.pkl"), "rb"))
         '''
 
-        # load pose model
-        root_path = os.path.join(os.path.dirname(__file__), "..", "..", "pretrained_model")
-        detect_config_file = 'configs/faster_rcnn/faster_rcnn_r50_fpn_1x_coco.py'
-        detect_checkpoint_file = 'faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth'
-        self.detect_model = init_detector(os.path.join(root_path, detect_config_file), \
-                os.path.join(root_path, detect_checkpoint_file), device='cuda:0')
+        if self.config.use_pose_detection:
+            # load pose model
+            root_path = os.path.join(os.path.dirname(__file__), "..", "..", "pretrained_model")
+            detect_config_file = 'configs/faster_rcnn/faster_rcnn_r50_fpn_1x_coco.py'
+            detect_checkpoint_file = 'faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth'
+            self.detect_model = init_detector(os.path.join(root_path, detect_config_file), \
+                    os.path.join(root_path, detect_checkpoint_file), device='cuda:0')
 
-        pose_config_file = 'topdown_heatmap_vipnas_mbv3_coco_256x192.py'
-        pose_checkpoint_file = 'vipnas_mbv3_coco_256x192-7018731a_20211122.pth'
-        self.pose_model = init_pose_model(os.path.join(root_path, pose_config_file), \
-            os.path.join(root_path, pose_checkpoint_file), device='cuda:0')
-        logging.info("Successfully loaded pose model!")
+            pose_config_file = 'topdown_heatmap_vipnas_mbv3_coco_256x192.py'
+            pose_checkpoint_file = 'vipnas_mbv3_coco_256x192-7018731a_20211122.pth'
+            self.pose_model = init_pose_model(os.path.join(root_path, pose_config_file), \
+                os.path.join(root_path, pose_checkpoint_file), device='cuda:0')
+            logging.info("Successfully loaded pose model!")
 
     def __select(self, arr: npt.NDArray, anchor: Tuple) -> npt.NDArray:
         # NOTE: C x H x W

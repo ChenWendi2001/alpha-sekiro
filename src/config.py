@@ -48,6 +48,9 @@ class Config():
         if opt.test_mode and not opt.load_ckpt:
             print("need checkpoints to test!")
             raise RuntimeError()
+
+        if opt.model_type in ["pose", "fusion"] and not opt.use_pose_detection:
+            print("Pose or Fusion model need pose detection, please add --use_pose_detection")
         self.opt = opt
         return opt
 
