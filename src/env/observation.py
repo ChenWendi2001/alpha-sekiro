@@ -47,9 +47,10 @@ class Observer():
     yield raw observation
     """
 
-    def __init__(self, handle, memory: Memory) -> None:
+    def __init__(self, handle, memory: Memory, config) -> None:
         self.handle: int = handle
         self.memory: Memory = memory
+        self.config = config
         self.emergency_count = 0
 
         anchor = ctypes.wintypes.RECT()
@@ -174,31 +175,37 @@ class Observer():
             screen_shot, FOCUS_ANCHOR).transpose(1, 2, 0).astype(np.uint8))
         if ic.enabled:
             focus_area.save(os.path.join(self.debug_path, f"focus-{self.timestamp}.png"))
+        
         focus_area = np.array(
             focus_area.resize(FOCUS_SIZE), dtype=np.uint8).transpose(2, 0, 1)
-        
-        # detection and pose
-        input_focus_area = focus_area.transpose(1, 2, 0)[:,:,::-1]
-        detect_result = inference_detector(self.detect_model, input_focus_area)
-        bbox = detect_result[0][:1]
-        bbox = [{'bbox': bb} for bb in bbox]
+        if self.config.use_pose_detection:
+            # detection and pose
+            input_focus_area = focus_area.transpose(1, 2, 0)[:,:,::-1]
+            detect_result = inference_detector(self.detect_model, input_focus_area)
+            bbox = detect_result[0][:1]
+            bbox = [{'bbox': bb} for bb in bbox]
 
-        pose_result, _ = inference_top_down_pose_model(self.pose_model, input_focus_area, bbox, format="xyxy")
+            
+            pose_result, _ = inference_top_down_pose_model(self.pose_model, input_focus_area, bbox, format="xyxy")
 
-        # print("pose!", pose_result)
-        if ic.enabled:
-            vis_pose_result(self.pose_model, input_focus_area, pose_result, \
-                 out_file=os.path.join(self.debug_path,f"pose-{self.timestamp}.png"))
+            # print("pose!", pose_result)
+            if ic.enabled:
+                vis_pose_result(self.pose_model, input_focus_area, pose_result, \
+                    out_file=os.path.join(self.debug_path,f"pose-{self.timestamp}.png"))
 
-        if len(pose_result) == 0:
-            self.emergency_count += 1
+            if len(pose_result) == 0:
+                self.emergency_count += 1
+                pose_result = [{
+                    'bbox': np.ones((5), dtype=np.float32) * -1,
+                    'keypoints': np.ones((17, 3)) * -1
+                }]
+            else:
+                self.emergency_count = 0 
+        else:
             pose_result = [{
                 'bbox': np.ones((5), dtype=np.float32) * -1,
                 'keypoints': np.ones((17, 3)) * -1
             }]
-        else:
-            self.emergency_count = 0
-
         # add one hot
         pose_result = pose_result[0]
 
@@ -222,7 +229,7 @@ class Observer():
             'keypoints': keypoints
         }
 
-        logging.debug(pose_result)
+        # logging.debug(pose_result)
 
         # imagenet normalization
         focus_area = focus_area[::-1,:,:].copy()

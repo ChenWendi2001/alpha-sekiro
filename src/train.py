@@ -130,6 +130,7 @@ class Trainer():
                     if self.epsilon > self.epsilon_end:
                         self.epsilon *= self.epsilon_decay
                     
+                    start_action_time = time.time()
                     # exec action
                     env.step(action)
                     
@@ -137,7 +138,9 @@ class Trainer():
                     if not self.config.test_mode and len(self.agent.replay_buffer) > self.config.start_train_after:
                         loss = self.agent.train_Q_network()
                         self.trainwriter.add_scalar("loss/train", loss, self.agent.step)
-                
+                    end_action_time = time.time()
+                    if (end_action_time - start_action_time < 0.2):
+                        time.sleep(0.2 - (end_action_time - start_action_time))
 
                 # get next state
                 next_obs, reward, done, emregency = env.obs(stat_closure)

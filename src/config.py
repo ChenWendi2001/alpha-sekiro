@@ -34,6 +34,7 @@ class Config():
         parser.add_argument("--ckpt_name", type=str)
         parser.add_argument("--test_mode", action="store_true")
         parser.add_argument("--model_type", type=str, default="cnn", choices=["cnn", "pose", "fusion", "deep", "half"])
+        parser.add_argument("--use_pose_detection", type=str, action="store_true")
 
         self.initialize = True
         return parser

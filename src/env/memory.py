@@ -207,8 +207,8 @@ class Memory():
         code_addr = self.pm.allocate(256)
         one = self.pm.allocate(8)  # 8 bytes
         dot_one = self.pm.allocate(8)
-        self.pm.write_float(one, 1.0)
-        self.pm.write_float(dot_one, 0.1)
+        self.pm.write_float(one, 2.0)
+        self.pm.write_float(dot_one, 0.075)
         injected_code = b"\x51\x53\x52\x48\xBA" + one.to_bytes(8, "little") + \
             b"\x48\xB9" + self.agent_mem_ptr.to_bytes(8, "little") + b"\x48\x39\x19\x0F\x85\x0D\x00\x00\x00" + \
             b"\x48\xBA" + dot_one.to_bytes(8, "little") + b"\x48\x8D\x12\x85\xC0\x0F\x84\x29\x00\x00" + \
