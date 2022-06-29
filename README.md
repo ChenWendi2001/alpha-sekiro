@@ -20,7 +20,7 @@ pip install tensorboardX
 
 pip install pymem
 
-# 以下以来为可选依赖，如果不使用姿态视觉模型，无需安装
+# 以下为可选依赖，如果不使用姿态视觉模型，无需安装
 pip install -U openmim
 mim install mmcv-full
 pip install mmpose
