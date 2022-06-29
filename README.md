@@ -4,6 +4,9 @@ Learn to play Sekiro with reinforcement learning.
 ### 简介
 本项目基于《只狼》游戏设计了一个鲁棒的训练环境，并基于多种视觉模型通过DQN强化学习的方式训练了一个较强的只狼AI，其可以击败弦一郎一阶段。具体效果可以查看此[b站视频](https://www.bilibili.com/video/BV1aS4y1p78e)。
 
+![](img/vic5.gif)
+
+
 ### Requirements
 安装时请注意版本。
 ```bash
@@ -60,3 +63,4 @@ http://download.openmmlab.com/mmdetection/v2.0/faster_rcnn/faster_rcnn_r50_fpn_1
   ```
 
 - 按`T`开启训练
+
