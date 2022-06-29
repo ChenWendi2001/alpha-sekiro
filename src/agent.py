@@ -8,10 +8,11 @@ import random
 import logging
 import numpy as np
 from typing import List
+import os
 
 
 from transition import Transition, State
-from model import Model
+from model import make_model
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -75,11 +76,19 @@ class Agent():
         self.lr_decay_every = config.lr_decay_every
         self.update_target_every = config.update_target_every
 
+        self.ckpt_dir = os.path.join(config.model_dir, config.model_name)
 
         # Replay Buffer
         self.replay_buffer = ReplayMemory(capacity=config.replay_capacity)
         # Policy Net
-        self.policy_net = Model(config).to(device)
+        
+        self.policy_net = make_model(config).to(device)
+        if config.load_ckpt: 
+            if os.path.exists(os.path.join(self.ckpt_dir, config.ckpt_name)):
+                self.policy_net.load_state_dict(torch.load(os.path.join(self.ckpt_dir, config.ckpt_name)))
+            else:
+                logging.error(f"No checkpoint's name is {config.ckpt_name}!")
+
         self.optimizer = optim.Adam(
             self.policy_net.parameters(), lr=config.lr, weight_decay=config.weight_decay
         )
@@ -88,7 +97,11 @@ class Agent():
         )
         self.DQN_criterion = nn.SmoothL1Loss()
         # Target Net
-        self.target_net = Model(config).to(device)
+        self.target_net = make_model(config).to(device)
+
+
+        ckpt_dir = os.path.join(os.path.dirname(__file__), "..", "..", "checkpoints") 
+
 
         self.update_target_net()
 
@@ -110,6 +123,7 @@ class Agent():
         Args:
             transition (Transition):
         '''
+        logging.debug("store new transition, current size: {}".format(len(self.replay_buffer)))
         self.replay_buffer.store(transition)
         
     def DQN_loss(self, state_q_values, next_state_q_values):
@@ -123,7 +137,6 @@ class Agent():
         '''
         return self.DQN_criterion(state_q_values, next_state_q_values)
 
-        return self.DQN_criterion(state_q_values, next_state_q_values)
     
     def act(self, state: State):
         '''act on input state 
@@ -135,7 +148,9 @@ class Agent():
             numpy: predicted prob on input state
         '''
         state = (
-            torch.from_numpy(state.image).float().to(device).unsqueeze(0),
+            torch.from_numpy(state.image).float().to(device).unsqueeze(0) ,
+            torch.from_numpy(state.pose_result['bbox']).to(device).flatten(),
+            torch.from_numpy(state.pose_result['keypoints']).to(device).flatten()
         )
 
         self.policy_net.eval()
@@ -163,8 +178,14 @@ class Agent():
         
         state_batch = (
             torch.stack(
-                [torch.from_numpy(state.image) for state in state_batch]
+                [torch.from_numpy(state.image)  for state in state_batch]
             ).float().to(device),
+            torch.stack(
+                [torch.from_numpy(state.pose_result['bbox']).flatten() for state in state_batch]
+            ).to(device),
+            torch.stack(
+                [torch.from_numpy(state.pose_result['keypoints']).flatten() for state in state_batch]
+            ).to(device)
         )
         logging.debug("state batch shape: {}".format(state_batch[0].shape))
 
@@ -194,8 +215,14 @@ class Agent():
 
         not_done_next_states = (
             torch.stack(
-                [ torch.from_numpy(s.image) for s in next_state_batch if s is not None]
+                [ torch.from_numpy(s.image)  for s in next_state_batch if s is not None]
             ).float().to(device),
+            torch.stack(
+                [torch.from_numpy(s.pose_result['bbox']).flatten() for s in next_state_batch if s is not None]
+            ).to(device),
+            torch.stack(
+                [torch.from_numpy(s.pose_result['keypoints']).flatten() for s in next_state_batch if s is not None]
+            ).to(device)
         )
 
         next_state_values = torch.zeros(self.batch_size, device=device)
@@ -207,11 +234,12 @@ class Agent():
 
         self.optimizer.zero_grad()
         loss.backward()
-        # logging.info("loss: {}".format(loss.item()))
+        logging.debug("loss: {}".format(loss.item()))
 
         # gradient clip
         for param in self.policy_net.parameters():
-            param.grad.data.clamp_(-1, 1)
+            if param.grad is not None:
+                param.grad.data.clamp_(-1, 1)
         
         self.optimizer.step()
 

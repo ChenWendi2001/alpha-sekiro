@@ -1,4 +1,4 @@
-from utils.info import *
+
 from typing import Optional
 from torchvision import transforms as T
 
@@ -9,15 +9,20 @@ class State():
     def __init__(self, obs) -> None:
         '''generate state from obs(screen shot)
 
-        Args:
-            obs (numpy array): 
+        Args:      
+            observation(Tuple):
+                focus_area      npt.NDArray[np.uint8], "L"
+                agent_hp        float
+                agent_ep        float
+                boss_hp         float
+                pose result     Tuple(np.float32, np.float32)
         '''
         
-        self.image = np.transpose(get_state_image(obs), axes=(2, 0, 1))
-        self.self_blood = get_self_blood(obs)
-        self.boss_blood = get_boss_blood(obs)
-        self.self_endurance = get_self_endurance(obs)
-        self.boss_endurance = get_boss_endurance(obs)
+        self.image = obs[0]
+        self.agent_hp = obs[1]
+        self.agent_ep = obs[3]
+        self.boss_hp = obs[2]
+        self.pose_result = obs[4]
 
 
 class Transition():

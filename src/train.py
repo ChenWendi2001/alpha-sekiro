@@ -7,96 +7,155 @@ import random
 import time
 import datetime
 import logging
+from icecream import ic
 import os
+
+from tensorboardX import SummaryWriter
 
 from agent import Agent
 from config import Config
 from utils import screenshot as Screenshot, control as Control
-import reward as Reward
-from transition import State, Transition
+from utils.average_meter import AverageMeter
 
+from transition import State, Transition
+from env import SekiroEnv
 
 class Trainer():
     def __init__(self, config) -> None:
+
+        if config.model_name == "":
+            config.model_name = "{}-{}".format("test" if config.test_mode else "train", datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+        self.model_name = config.model_name
+        self.ckpt_dir = os.path.join(config.model_dir, self.model_name)
+
+    
         self.agent = Agent(config)
         self.config = config
+        
         
         # epsilon
         self.epsilon = config.epsilon_start
         self.epsilon_decay = config.epsilon_decay
         self.epsilon_end = config.epsilon_end
+        
+
+        # prepare folder
+        for dir in [config.log_dir, self.ckpt_dir]:
+            if not os.path.exists(dir):
+                os.mkdir(dir)
+
+        
+        # tensorboard
+        self.trainwriter = SummaryWriter(
+            os.path.join(config.log_dir,
+            self.model_name
+            ),
+            flush_secs=60
+        )
+
 
 
     def run(self):
         '''the main training pipeline
-        '''
+        ''' 
+
+        best_total_reward = 0
+        env = SekiroEnv()
         paused = True
         paused = Control.wait_command(paused)
-        Control.lock()
+
+        # start a new game by pressing 'T' on game window
+        # get first frame
+        obs = env.reset()
+        time.sleep(0.05)
+        cur_state = State(obs)
+
+        # preset
+        done = False
+        emregency = False
+        last_time = time.time()
+        reward_meter = AverageMeter("reward")
+        reward_meter.reset()
+        damage_meter = AverageMeter("damage to boss")
+        def stat_closure(damage):
+            damage_meter.update(damage)
+        
         for episode in trange(self.config.episodes):
-            # start a new game by pressing 'T' on game window
-
-
-            # get first frame
-            obs = Screenshot.fetch_image()
-            cur_state = State(obs)
-
-            # preset
-            done = False
-            last_time = time.time()
-            total_reward = 0
-
-            # avoid multi-judging during the animation of blood decreaing 
-            # 0: not in animation, 1: in animation
-            self_blood_animation_state = 0
-
+            start_time = time.time()
+            start_step = self.agent.step
             while True:
 
                 # calculate latency
                 logging.info('curr: {}, loop took {} seconds'.format(self.agent.step, time.time()-last_time))
                 last_time = time.time()
 
-                # Russian roulette
-                
-                if random.random() >= self.epsilon:
-                    random_action = False
-                    pred = self.agent.act(cur_state)
-                    action_sort = np.squeeze(np.argsort(pred)[::-1])
-                    action = action_sort[0]
+
+                # remove useless frames like boss dying
+                if emregency:
+                    logging.critical("emergency happening!")
                 else:
-                    random_action = True
-                    action = random.randint(0, config.action_dim - 1)
+                    # Russian roulette
+                    
+                    if self.config.test_mode or random.random() >= self.epsilon:
+                        random_action = False
+                        pred = self.agent.act(cur_state)
+                        logging.info(pred)
+                        action_sort = np.squeeze(np.argsort(pred)[::-1])
+                        action = action_sort[0]
+                    else:
+                        random_action = True
+                        random_value = random.random()
+                        if random_value < 0.3:
+                            action = 0
+                        elif random_value < 0.5:
+                            action = 1
+                        elif random_value < 0.6:
+                            action = 2
+                        elif random_value < 0.7:
+                            action = 3
+                        elif random_value < 0.8:
+                            action = 4
+                        elif random_value < 0.9:
+                            action = 5
+                        else:
+                            action = 6
 
 
-                logging.info("Action: {} [{}]".format(action, "random" if random_action else "learned"))
-                Control.take_action(action)
+                    logging.info("Action: {} [{}]".format(action, "random" if random_action else "learned"))
 
-                # update epsilon
-                if self.epsilon > self.epsilon_end:
-                    self.epsilon *= self.epsilon_decay
-                
+
+                    # update epsilon
+                    if self.epsilon > self.epsilon_end:
+                        self.epsilon *= self.epsilon_decay
+                    
+                    
+                    # exec action
+                    start_action_time = time.time()
+                    env.step(action)
+                    
+                    # traing one step
+                    if not self.config.test_mode and len(self.agent.replay_buffer) > self.config.start_train_after:
+                        loss = self.agent.train_Q_network()
+                        self.trainwriter.add_scalar("loss/train", loss, self.agent.step)
+                    end_action_time = time.time()
+
+                    # action delay: avoid too frequent
+                    if (end_action_time - start_action_time < 0.2):
+                        time.sleep(0.2 - (end_action_time - start_action_time))
+
                 # get next state
-                next_obs = Screenshot.fetch_image()
+                next_obs, reward, done, emregency = env.obs(stat_closure)
+
                 next_state = State(obs=next_obs)
 
-                # calculate reward and judge result
-                reward, done, self_blood_animation_state = Reward.get_reward(
-                    cur_state, 
-                    next_state,
-                    self_blood_animation_state
-                    )
 
-                if done:
-                    logging.info("player died!")
-
-                logging.info("reward: {}".format(reward))
-
-                self.agent.store_transition(Transition(
-                    state=cur_state,
-                    action=action,
-                    next_state=(next_state if not done else None),
-                    reward=reward
-                ))
+                if not self.config.test_mode: 
+                    self.agent.store_transition(Transition(
+                        state=cur_state,
+                        action=action,
+                        next_state=(next_state if not done else None),
+                        reward=reward
+                    ))
 
                 cur_state = next_state
 
@@ -104,32 +163,67 @@ class Trainer():
                 # check "T" key 
                 paused = Control.wait_command(paused)
 
-                total_reward += reward
-                if done == 1:
-
-                    time.sleep(7)
-                    Control.lock()
-                    time.sleep(0.5)
-                    Control.click()
-                    time.sleep(0.5)
+                reward_meter.update(reward)
+                
+                if done:
                     break
 
-                # traing one step
-                if len(self.agent.replay_buffer) > self.config.batch_size:
-                    self.agent.train_Q_network()
             
-            if episode % self.config.save_model_every == 0:
-                if not os.path.exists(config.model_dir):
-                    os.mkdir(config.model_dir)
-                torch.save(self.agent.policy_net.state_dict(), os.path.join(config.model_dir, "{}.pt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))))
+            if not self.config.test_mode and ((episode + 1) % self.config.save_model_every == 0 or reward_meter.sum > best_total_reward):
+                # save best model ever
+                best_total_reward = max(reward_meter.sum, best_total_reward)
+                torch.save(self.agent.policy_net.state_dict(), 
+                    os.path.join(self.ckpt_dir, "{}-{}.pt".format(
+                        datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"),
+                        reward_meter.sum
+                    ))
+                )
+
+            # tensorboard
+            end_time = time.time()
+            end_step = self.agent.step
+            self.trainwriter.add_scalar("step_taken/train", end_step - start_step, episode)
+            self.trainwriter.add_scalar("time_used/train", end_time - start_time, episode)
+            self.trainwriter.add_scalar("damage_sum/train", damage_meter.sum, episode)
+            self.trainwriter.add_scalar("reward_sum/train", reward_meter.sum, episode)
+            self.trainwriter.add_scalar("reward_avg/train", reward_meter.avg, episode)
+
+            # preset
+            done = False
+            last_time = time.time()
+            reward_meter.reset()
+            damage_meter.reset()
+
+            obs = env.reset()
+            cur_state = State(obs)
+
+
+
+
 
 if __name__ == "__main__":
     
     config = Config().parse()
 
     # logging setting
+    ic.disable()
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
+    file_handler = logging.FileHandler(os.path.join(config.log_dir, "{}.txt".format(datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))))
+    file_handler.setLevel(logging.DEBUG)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter('%(asctime)s-%(levelname)s-%(message)s')
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+
+    for k in list(vars(config).keys()):
+        logging.info('%s: %s' % (k, vars(config)[k]))
+    
     trainer = Trainer(config)
     trainer.run()
