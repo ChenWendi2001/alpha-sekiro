@@ -39,7 +39,7 @@ http://download.openmmlab.com/mmdetection/v2.0/faster_rcnn/faster_rcnn_r50_fpn_1
 
 
 ### Getting Started
-- 确认《只狼》游戏为`1.0.5`，安装`mod engine`通过[坚果云](https://www.jianguoyun.com/p/DX_Eu1AQ76KXCRjzocgEIAA)下载指定的`mod`并安装。
+- 确认《只狼》游戏为`1.0.5`，安装`mod engine`，通过[坚果云](https://www.jianguoyun.com/p/DX_Eu1AQ76KXCRjzocgEIAA)下载指定的`mod`并安装。
 
 - 使用键盘进行游戏，并修改游戏按键：
 
