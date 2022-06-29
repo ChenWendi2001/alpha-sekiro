@@ -55,26 +55,12 @@ class Actor():
         time.sleep(action_delay)
 
     def autoLock(self):
-        def adjustVertical() -> None:
-            pydirectinput.keyDown('u')
-            time.sleep(1.5)
-            pydirectinput.keyUp('u')
-            pydirectinput.keyDown('i')
-            time.sleep(0.5)
-            pydirectinput.keyUp('i')
-
+        
         def adjustHorizon(i) -> None:
             pydirectinput.keyDown('o')
             time.sleep(0.25 * (i+1))
             pydirectinput.keyUp('o')
 
-        def if_focus(image: np.array) -> None:
-            gray = cv2.pyrMeanShiftFiltering(image, sp=10, sr=100)
-            gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
-            circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 200,
-                                        param1=200, param2=10,
-                                        minRadius=0, maxRadius=6)
-            return circles is not None
 
         locked = self.memory.lockBoss()
         while not locked:

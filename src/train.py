@@ -63,8 +63,6 @@ class Trainer():
         env = SekiroEnv()
         paused = True
         paused = Control.wait_command(paused)
-        # Control.reset_cheater()
-        # Control.infinite_respawn()
 
         # start a new game by pressing 'T' on game window
         # get first frame
@@ -130,8 +128,9 @@ class Trainer():
                     if self.epsilon > self.epsilon_end:
                         self.epsilon *= self.epsilon_decay
                     
-                    start_action_time = time.time()
+                    
                     # exec action
+                    start_action_time = time.time()
                     env.step(action)
                     
                     # traing one step
@@ -139,6 +138,8 @@ class Trainer():
                         loss = self.agent.train_Q_network()
                         self.trainwriter.add_scalar("loss/train", loss, self.agent.step)
                     end_action_time = time.time()
+
+                    # action delay: avoid too frequent
                     if (end_action_time - start_action_time < 0.2):
                         time.sleep(0.2 - (end_action_time - start_action_time))
 
@@ -169,7 +170,7 @@ class Trainer():
 
             
             if not self.config.test_mode and ((episode + 1) % self.config.save_model_every == 0 or reward_meter.sum > best_total_reward):
-             
+                # save best model ever
                 best_total_reward = max(reward_meter.sum, best_total_reward)
                 torch.save(self.agent.policy_net.state_dict(), 
                     os.path.join(self.ckpt_dir, "{}-{}.pt".format(

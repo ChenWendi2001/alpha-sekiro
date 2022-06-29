@@ -27,21 +27,6 @@ from .env_config import (AGENT_EP_ANCHOR, AGENT_HP_ANCHOR, BOSS_EP_ANCHOR,
 
 
 
-
-def get_blood(image:np.array, height:Tuple, width: Tuple):
-    blood_bar = image[height[0]:height[1], width[0]:width[1]]
-    blood_bar = cv2.cvtColor(blood_bar, cv2.COLOR_RGB2BGR)
-    blood_edge = cv2.Canny(cv2.GaussianBlur(blood_bar,(5,5),0), 0, 100)
-
-    # FIXME: error when low blood √
-    # NOTE: check that the blood should be red
-    blood = int(np.median(blood_edge.argmax(axis=-1)))
-    sample = blood_bar[:, blood // 2]
-    
-    blood = int(blood / (width[1] - width[0]) * 100)
-    red = np.array([[46, 61, 124]])
-    return blood if np.linalg.norm(red - sample, 2) < 200 else 0
-
 class Observer():
     """[summary]
     yield raw observation
@@ -65,21 +50,9 @@ class Observer():
 
         self.timestamp: str = ""
 
-        # HACK: load preset hp & ep
-        self.asset_path = os.path.join(os.path.dirname(__file__), "asset")
         self.debug_path = os.path.join(os.path.dirname(__file__), "debug")
         if ic.enabled and not os.path.exists(self.debug_path):
             os.mkdir(self.debug_path)
-        '''
-        self.agent_hp_full = pickle.load(
-            open(os.path.join(self.asset_path, "agent-hp-full.pkl"), "rb"))
-        self.boss_hp_full = pickle.load(
-            open(os.path.join(self.asset_path, "boss-hp-full.pkl"), "rb"))
-        self.agent_ep_full = pickle.load(
-            open(os.path.join(self.asset_path, "agent-ep-full.pkl"), "rb"))
-        self.boss_ep_full = pickle.load(
-            open(os.path.join(self.asset_path,"boss-ep-full.pkl"), "rb"))
-        '''
 
         if self.config.use_pose_detection:
             # load pose model
@@ -162,11 +135,7 @@ class Observer():
             agent_ep        float
             boss_hp         float
         """
-        # NOTE: use HSV
-        hsv_screen_shot = np.array(Image.fromarray(
-            screen_shot.astype(np.uint8).transpose(1, 2, 0)).convert("HSV"),
-            dtype=np.int16).transpose(2, 0, 1)
-
+        
         agent_hp, agent_ep, boss_hp = self.memory.getStatus()
 
         logging.info(f"agent hp: {agent_hp:.2f}, boss hp: {boss_hp:.2f}")
