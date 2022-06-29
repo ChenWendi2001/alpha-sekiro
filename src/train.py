@@ -14,7 +14,7 @@ from tensorboardX import SummaryWriter
 
 from agent import Agent
 from config import Config
-from utils import screenshot as Screenshot, control as Control
+from utils import control as Control
 from utils.average_meter import AverageMeter
 
 from transition import State, Transition
@@ -60,7 +60,7 @@ class Trainer():
         ''' 
 
         best_total_reward = 0
-        env = SekiroEnv()
+        env = SekiroEnv(self.config)
         paused = True
         paused = Control.wait_command(paused)
 

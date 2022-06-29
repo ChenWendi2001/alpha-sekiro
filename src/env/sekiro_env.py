@@ -15,7 +15,7 @@ from utils import control as Control
 from .memory import Memory
 
 class SekiroEnv():
-    def __init__(self) -> None:
+    def __init__(self, config) -> None:
         self.handle = win32gui.FindWindow(0, GAME_NAME)
         if self.handle == 0:
             logging.critical(f"can't find {GAME_NAME}")
@@ -24,7 +24,7 @@ class SekiroEnv():
 
         self.memory = Memory()
         self.actor = Actor(self.handle, self.memory)
-        self.observer = Observer(self.handle, self.memory)
+        self.observer = Observer(self.handle, self.memory, config)
 
         self.last_agent_hp = 0
         self.last_agent_ep = 0
