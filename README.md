@@ -39,7 +39,7 @@ http://download.openmmlab.com/mmdetection/v2.0/faster_rcnn/faster_rcnn_r50_fpn_1
 
 
 ### Getting Started
-- 确认《只狼》游戏为`1.0.5`，安装`mod engine`，通过[坚果云](https://www.jianguoyun.com/p/DX_Eu1AQ76KXCRjzocgEIAA)下载指定的`mod`并安装。
+- 确认《只狼》游戏版本为`1.0.5`，安装`mod engine`，通过[坚果云](https://www.jianguoyun.com/p/DX_Eu1AQ76KXCRjzocgEIAA)下载指定的`mod`并安装。
 
 - 使用键盘进行游戏，并修改游戏按键：
 
@@ -51,11 +51,11 @@ http://download.openmmlab.com/mmdetection/v2.0/faster_rcnn/faster_rcnn_r50_fpn_1
 
 - 调整游戏内设置
 
-   - 使用窗口化进行游戏，修改分辨率为`1280x720`，将”质量设定“调整为中
+   - 使用窗口化进行游戏，修改分辨率为`1280x720`，将“质量设定”调整为“中”
    
-   - 关闭”血腥效果“以及”字幕显示“，设置”亮度调整“为10
+   - 关闭“血腥效果”以及“字幕显示”，设置“亮度调整”为10
 
-- 选择关卡："再战稀世强者"，”苇名弦一郎“，等待关卡载入结束后，按”esc“进行暂停
+- 选择关卡：“再战稀世强者”，“苇名弦一郎”，等待关卡载入结束后，按`esc`进行暂停
 
 - **使用管理员权限的powershell或者终端**进入`src`文件夹，执行以下命令，若使用姿态模型，还需增加`--use_pose_detection`参数。
   ```bash
